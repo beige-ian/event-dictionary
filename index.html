@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>이벤트 딕셔너리</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f0f13;color:#d4d4d8;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:260px;flex-shrink:0;background:#141418;border-right:1px solid #2a2a2f;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:16px;border-bottom:1px solid #2a2a2f}
+.sidebar-header h1{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}
+#search{width:100%;padding:8px 10px;background:#0f0f13;border:1px solid #333;border-radius:6px;color:#d4d4d8;font-size:13px;outline:none}
+#search:focus{border-color:#3b82f6}
+.cat-list{flex:1;overflow-y:auto;padding:8px}
+.cat-item{display:flex;align-items:center;padding:7px 10px;border-radius:6px;cursor:pointer;transition:background .15s;margin-bottom:2px}
+.cat-item:hover{background:#1f1f24}
+.cat-item.active{background:#1e3a5f}
+.cat-item.active .cat-name{color:#93c5fd;font-weight:600}
+.cat-name{flex:1;font-size:13px;color:#9ca3af}
+.cat-count{font-size:11px;background:#2a2a2f;color:#6b7280;padding:1px 6px;border-radius:10px;min-width:22px;text-align:center}
+.cat-item.active .cat-count{background:#2563eb;color:#fff}
+.main{flex:1;overflow-y:auto;padding:24px}
+.cat-section{margin-bottom:36px}
+.sec-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #2a2a2f}
+.card{background:#1a1a1f;border:1px solid #2a2a2f;border-radius:8px;padding:16px;margin-bottom:10px;transition:border-color .15s}
+.card:hover{border-color:#3a3a4f}
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.type-badge{font-size:11px;font-weight:700;color:#fff;padding:2px 8px;border-radius:4px;letter-spacing:.5px;flex-shrink:0}
+.owner-badge{font-size:10px;font-weight:600;color:#fff;padding:2px 6px;border-radius:3px;flex-shrink:0}
+.ev-name{font-size:15px;font-weight:600;color:#e4e4e7;font-family:"SFMono-Regular",Consolas,monospace;word-break:break-all}
+.ev-desc{font-size:13px;color:#9ca3af;margin-bottom:10px;line-height:1.5}
+.prop-block{margin-bottom:10px}
+.prop-label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.prop-block pre{background:#0f0f13;border:1px solid #2a2a2f;border-radius:5px;padding:10px;font-size:12px;color:#a3e635;white-space:pre-wrap;word-break:break-all;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.5}
+.cmt-wrap summary{font-size:12px;color:#6366f1;cursor:pointer;padding:2px 0}
+.cmt-list{margin-top:8px;padding-left:12px;border-left:2px solid #2a2a2f}
+.cmt-item{font-size:12px;color:#9ca3af;padding:4px 0;line-height:1.5}
+.cmt-author{color:#a78bfa;font-weight:600;margin-right:6px}
+.filter-row{display:flex;gap:4px;margin-top:10px}
+.filter-btn{background:transparent;border:1px solid #333;color:#9ca3af;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer}
+.filter-btn.active{color:#fff;background:#2a2a2f}
+.view-toggle{display:flex;gap:4px;margin-top:6px}
+.view-btn{background:transparent;border:1px solid #333;color:#9ca3af;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer;flex:1;text-align:center}
+.view-btn.active{color:#fff;background:#2563eb;border-color:#2563eb}
+.funnel-container{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;padding:8px}
+.funnel-step{background:#1a1a1f;border:1px solid #2a2a2f;border-radius:8px;padding:14px;min-width:200px;max-width:260px;flex-shrink:0}
+.funnel-step:hover{border-color:#3a3a4f}
+.fstep-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.fstep-title{font-size:14px;font-weight:700;color:#fff}
+.fstep-count{font-size:11px;background:#2a2a2f;color:#6b7280;padding:1px 6px;border-radius:10px}
+.fstep-types{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.fpill{font-size:10px;font-weight:600;color:#fff;padding:1px 6px;border-radius:3px}
+.fstep-events{display:flex;flex-direction:column;gap:2px}
+.fev{font-size:11px;color:#9ca3af;font-family:"SFMono-Regular",Consolas,monospace;padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fev-more{color:#6366f1;font-style:italic}
+.funnel-arrow{color:#4b5563;font-size:24px;display:flex;align-items:center;padding:0 2px;flex-shrink:0}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#0f0f13}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>이벤트 딕셔너리</h1>
+    <input id="search" type="text" placeholder="이벤트명/설명 검색...">
+    <div class="filter-row">
+      <button class="filter-btn active" data-owner="all">전체</button>
+      <button class="filter-btn" data-owner="클라이언트" style="border-color:#0ea5e9">클라이언트</button>
+      <button class="filter-btn" data-owner="서버" style="border-color:#f59e0b">서버</button>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="list">목록</button>
+      <button class="view-btn" data-view="funnel">퍼널</button>
+    </div>
+  </div>
+  <ul class="cat-list"><li class="cat-item active" data-cat="all"><span class="cat-name">전체보기</span><span class="cat-count">173</span></li><li class="cat-item" data-cat="스플래쉬"><span class="cat-name">스플래쉬</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="온보딩"><span class="cat-name">온보딩</span><span class="cat-count">3</span></li><li class="cat-item" data-cat="로그인___회원가입"><span class="cat-name">로그인 &amp; 회원가입</span><span class="cat-count">6</span></li><li class="cat-item" data-cat="회원가입"><span class="cat-name">회원가입</span><span class="cat-count">33</span></li><li class="cat-item" data-cat="홈"><span class="cat-name">홈</span><span class="cat-count">9</span></li><li class="cat-item" data-cat="수거신청"><span class="cat-name">수거신청</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="신규유저_결제수단_등록_모달"><span class="cat-name">신규유저 결제수단 등록 모달</span><span class="cat-count">3</span></li><li class="cat-item" data-cat="쿠폰관리"><span class="cat-name">쿠폰관리</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="회원_탈퇴"><span class="cat-name">회원 탈퇴</span><span class="cat-count">7</span></li><li class="cat-item" data-cat="앱_설정"><span class="cat-name">앱 설정</span><span class="cat-count">2</span></li><li class="cat-item" data-cat="결제수단_등록"><span class="cat-name">결제수단 등록</span><span class="cat-count">8</span></li><li class="cat-item" data-cat="서비스지역"><span class="cat-name">서비스지역</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="친구_초대"><span class="cat-name">친구 초대</span><span class="cat-count">4</span></li><li class="cat-item" data-cat="공지사항"><span class="cat-name">공지사항</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="주소_관리"><span class="cat-name">주소 관리</span><span class="cat-count">8</span></li><li class="cat-item" data-cat="이용_내역"><span class="cat-name">이용 내역</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="직접_결제_관련"><span class="cat-name">직접 결제 관련</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="홈__서비스_이용지역_외_"><span class="cat-name">홈 (서비스 이용지역 외)</span><span class="cat-count">2</span></li><li class="cat-item" data-cat="내_정보_설정"><span class="cat-name">내 정보 설정</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="봉투_구매"><span class="cat-name">봉투 구매</span><span class="cat-count">11</span></li><li class="cat-item" data-cat="리뷰_화면"><span class="cat-name">리뷰 화면</span><span class="cat-count">7</span></li><li class="cat-item" data-cat="의미없음"><span class="cat-name">의미없음</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="이벤트화면"><span class="cat-name">이벤트화면</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="배너"><span class="cat-name">배너</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="구독"><span class="cat-name">구독</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="믹스패널_자체_이벤트"><span class="cat-name">믹스패널 자체 이벤트</span><span class="cat-count">6</span></li></ul>
+</nav>
+<main class="main" id="main">
+  <div id="list-view"><section id="sec_스플래쉬" class="cat-section" data-cat="스플래쉬"><h2 class="sec-title">스플래쉬</h2><div class="card" data-search="splashscreen 앱 실행 시마다 맨 처음 표시되는 화면 route 스플래쉬 클라이언트" data-cat="스플래쉬" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SplashScreen</span>
+  </div>
+  <div class="ev-desc">앱 실행 시마다 맨 처음 표시되는 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div></section><section id="sec_온보딩" class="cat-section" data-cat="온보딩"><h2 class="sec-title">온보딩</h2><div class="card" data-search="onboardingscreen 온보딩 화면 route 온보딩 클라이언트" data-cat="온보딩" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">OnboardingScreen</span>
+  </div>
+  <div class="ev-desc">온보딩 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="onboarding_serviceregionbutton 온보딩 화면 내 서비스 지역 버튼 click 온보딩 클라이언트" data-cat="온보딩" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Onboarding_ServiceRegionButton</span>
+  </div>
+  <div class="ev-desc">온보딩 화면 내 서비스 지역 버튼</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="onboarding_loginbutton 온보딩 화면 내 로그인/회원가입 버튼 click 온보딩 클라이언트" data-cat="온보딩" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Onboarding_LoginButton</span>
+  </div>
+  <div class="ev-desc">온보딩 화면 내 로그인/회원가입 버튼</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div></section><section id="sec_로그인___회원가입" class="cat-section" data-cat="로그인___회원가입"><h2 class="sec-title">로그인 &amp; 회원가입</h2><div class="card" data-search="authphonescreen 휴대폰 인증 화면 route 로그인 &amp; 회원가입 클라이언트" data-cat="로그인___회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthPhoneScreen</span>
+  </div>
+  <div class="ev-desc">휴대폰 인증 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="authphone_requestauthcodebutton 인증번호 보내기 click 로그인 &amp; 회원가입 클라이언트" data-cat="로그인___회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthPhone_RequestAuthCodeButton</span>
+  </div>
+  <div class="ev-desc">인증번호 보내기</div>
+  
+</div><div class="card" data-search="authcodescreen 인증번호 화면 route 로그인 &amp; 회원가입 클라이언트" data-cat="로그인___회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthCodeScreen</span>
+  </div>
+  <div class="ev-desc">인증번호 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>에러코드는 없으므로, 현재 제외함.
+FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="authcode_resendauthcodebutton 인증번호 다시 보내기 버튼 click 로그인 &amp; 회원가입 클라이언트" data-cat="로그인___회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthCode_ResendAuthCodeButton</span>
+  </div>
+  <div class="ev-desc">인증번호 다시 보내기 버튼</div>
+  
+</div><div class="card" data-search="authcode_notreceivedcodebutton 인증번호가 오지 않아요 click 로그인 &amp; 회원가입 클라이언트" data-cat="로그인___회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthCode_NotReceivedCodeButton</span>
+  </div>
+  <div class="ev-desc">인증번호가 오지 않아요</div>
+  
+</div><div class="card" data-search="authcode_completebutton 완료 버튼 클릭 click 로그인 &amp; 회원가입 클라이언트" data-cat="로그인___회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthCode_CompleteButton</span>
+  </div>
+  <div class="ev-desc">완료 버튼 클릭</div>
+  
+</div></section><section id="sec_회원가입" class="cat-section" data-cat="회원가입"><h2 class="sec-title">회원가입</h2><div class="card" data-search="signup_termagree 회원가입시이용약관 동의 모달 보기 modal 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">SignUp_TermAgree</span>
+  </div>
+  <div class="ev-desc">회원가입시이용약관 동의 모달 보기</div>
+  <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (해당 시점에서 보내야하는 property로 서버에서는 알 수 없기 때문에 FE에서 보냄, 이런 케이스 구조화가 가능한지)
+= 자현님이랑 논의 필요
+
+=&gt; 클라이언트</div></div></details>
+</div><div class="card" data-search="termagree_nextbutton 이용약관에서 다음으로 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">TermAgree_NextButton</span>
+  </div>
+  <div class="ev-desc">이용약관에서 다음으로 버튼 클릭</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_agreement // boolean // true값으로 되어있는지 = 동의</pre></div>
+</div><div class="card" data-search="signup_returntoonboarding  modal 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">SignUp_ReturnToOnboarding</span>
+  </div>
+  
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>view_path : 해당 모달 또는 화면이 어느 스크린에서 열렸는지 기록하는 이벤트 프로퍼티
+앱 사용자 흐름을 분석하기 위해 &quot;진입 출처&quot;를 명확히 추적하는 Purpose
+ 
+// Home // 홈 화면에서 모달 오픈
+// MyPage // 마이페이지에서 열림
+// PickupRequestScreen // 수거신청 화면에서 열림
+// SignupAddressScreen // 회원가입 – 주소 입력 화면에서 열림
+// SignUpIntroScreen // 회원가입 인트로 화면
+// HistoryDetailScreen // 이용내역 상세 화면
+// CouponScreen // 쿠폰 화면</pre></div><details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>view_path &gt; FE</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signup_returntoonboarding_gobackbutton 온보딩으로 돌아가시겠습니까 모달 돌아가기 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignUp_ReturnToOnboarding_goBackButton</span>
+  </div>
+  <div class="ev-desc">온보딩으로 돌아가시겠습니까 모달 돌아가기 버튼 클릭</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signup_returntoonboarding_continuebutton 온보딩으로 돌아가시겠습니까 모달 계속하기 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignUp_ReturnToOnboarding_continueButton</span>
+  </div>
+  <div class="ev-desc">온보딩으로 돌아가시겠습니까 모달 계속하기 버튼 클릭</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupintroscreen 회원가입 소개 화면 진입 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SignupIntroScreen</span>
+  </div>
+  <div class="ev-desc">회원가입 소개 화면 진입</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupnicknamescreen 회원가입 이름 입력 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SignupNicknameScreen</span>
+  </div>
+  <div class="ev-desc">회원가입 이름 입력 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupaddressscreen 회원가입 주소입력 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SignupAddressScreen</span>
+  </div>
+  <div class="ev-desc">회원가입 주소입력 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (해당 시점에서 보내야하는 property로 서버에서는 알 수 없기 때문에 FE에서 보냄, 이런 케이스 구조화가 가능한지 확인 필요)
+
+=&gt; 클라이언트</div></div></details>
+</div><div class="card" data-search="signupaddressscreen_addresssearchbutton 회원가입 주소 검색 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupAddressScreen_addressSearchButton</span>
+  </div>
+  <div class="ev-desc">회원가입 주소 검색 버튼 클릭</div>
+  
+</div><div class="card" data-search="signupaddressscreen_completebutton  click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupAddressScreen_completeButton</span>
+  </div>
+  
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_filled / boolean / true &amp; false
+상세주소 입력값이 비어있지 않으면 true</pre></div>
+</div><div class="card" data-search="signupaddressscreen_emptydetailaddressalert 상세주소 미입력 알럿 모달 modal 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">SignupAddressScreen_EmptyDetailAddressAlert</span>
+  </div>
+  <div class="ev-desc">상세주소 미입력 알럿 모달</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupaddressscreen_emptydetailaddressalert_save 저장 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupAddressScreen_EmptyDetailAddressAlert_save</span>
+  </div>
+  <div class="ev-desc">저장 버튼 클릭</div>
+  
+</div><div class="card" data-search="signupaddressscreen_emptydetailaddressalert_continueediting 계속 작성 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupAddressScreen_EmptyDetailAddressAlert_continueEditing</span>
+  </div>
+  <div class="ev-desc">계속 작성 버튼 클릭</div>
+  
+</div><div class="card" data-search="signupcompletedscreen 회원가입 완료 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SignupCompletedScreen</span>
+  </div>
+  <div class="ev-desc">회원가입 완료 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupcompletedscreen_startbutton 회원가입 완료 화면의 “시작하기” 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupCompletedScreen_startButton</span>
+  </div>
+  <div class="ev-desc">회원가입 완료 화면의 “시작하기” 버튼 클릭</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupreferralchannelscreen 회원가입 유입 경로 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SignupReferralChannelScreen</span>
+  </div>
+  <div class="ev-desc">회원가입 유입 경로 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="signupreferralchannelscreen_exitbutton 나가기 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupReferralChannelScreen_exitButton</span>
+  </div>
+  <div class="ev-desc">나가기 버튼 클릭</div>
+  <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>3 &gt; ?</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
+3번은 유저 property로 서버에서 설정하는 값 (중복으로 보임, 제거 필요)</div></div></details>
+</div><div class="card" data-search="signupreferralchannelscreen_confirmbutton 선택완료 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SignupReferralChannelScreen_confirmButton</span>
+  </div>
+  <div class="ev-desc">선택완료 버튼 클릭</div>
+  
+</div><div class="card" data-search="authverifyintroscreen 계정 인증 소개 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthVerifyIntroScreen</span>
+  </div>
+  <div class="ev-desc">계정 인증 소개 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="authverifyintroscreen_verifyaccount 계정 인증 버튼 클릭 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthVerifyIntroScreen_verifyAccount</span>
+  </div>
+  <div class="ev-desc">계정 인증 버튼 클릭</div>
+  
+</div><div class="card" data-search="authverifyintroscreen_realcreateaccount 새 계정 만들기 마지막 확인 모달 오픈 modal 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">AuthVerifyIntroScreen_realCreateAccount</span>
+  </div>
+  <div class="ev-desc">새 계정 만들기 마지막 확인 모달 오픈</div>
+  
+</div><div class="card" data-search="authverifyaddressscreen 계정 인증 주소 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthVerifyAddressScreen</span>
+  </div>
+  <div class="ev-desc">계정 인증 주소 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="authverifyaddressscreen_nextbutton 다음으로 버튼 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthVerifyAddressScreen_nextButton</span>
+  </div>
+  <div class="ev-desc">다음으로 버튼</div>
+  
+</div><div class="card" data-search="authverifynicknamescreen 계정 인증 이름 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthVerifyNicknameScreen</span>
+  </div>
+  <div class="ev-desc">계정 인증 이름 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div><div class="card" data-search="authverifynicknamescreen_completebutton 완료 버튼 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthVerifyNicknameScreen_completeButton</span>
+  </div>
+  <div class="ev-desc">완료 버튼</div>
+  
+</div><div class="card" data-search="authverifyfailed 계정 인증 실패 event 회원가입 서버" data-cat="회원가입" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">AuthVerifyFailed</span>
+  </div>
+  <div class="ev-desc">계정 인증 실패</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- failed_count // 실패 횟수 // 1,2,3</pre></div><details class="cmt-wrap"><summary>코멘트 3개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>이미 심어져 있는 것으로 확인 됨</div><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>BE와 FE 둘 다 가능한 작업
+= [EVENT] BE에서 진행
+
+=&gt; 백엔드 (실패했을 때만 발송)</div></div></details>
+</div><div class="card" data-search="authfailedscreen - 계정 인증 실패 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthFailedScreen</span>
+  </div>
+  <div class="ev-desc">- 계정 인증 실패 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>미결제내역?</div><div class="cmt-item"><span class="cmt-author">인준</span>미결제내역이 있는 경우 회원탈퇴를 못함.
+= BE에서 진행함. 화면 라우팅이 되고, API 호출 시점을 모름. FE에서 라우팅 이벤트를 찍고, BE에서 추가적으로 트래킹함.
+
+=&gt; 속성 제거 + 클릭 이벤트 추가 (클라이언트에서만)</div></div></details>
+</div><div class="card" data-search="authfailedscreen_createnewaccountbutton - 새계정 만들기 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthFailedScreen_createNewAccountButton</span>
+  </div>
+  <div class="ev-desc">- 새계정 만들기</div>
+  
+</div><div class="card" data-search="authfailedscreen_goonboardingbutton - 처음으로 (미결제 내역인 유저의 페이지랑 공통 이벤트) click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthFailedScreen_goOnboardingButton</span>
+  </div>
+  <div class="ev-desc">- 처음으로 (미결제 내역인 유저의 페이지랑 공통 이벤트)</div>
+  
+</div><div class="card" data-search="authblockedscreen - 로그인을 할 수 없어요 화면 route 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AuthBlockedScreen</span>
+  </div>
+  <div class="ev-desc">- 로그인을 할 수 없어요 화면</div>
+  
+</div><div class="card" data-search="authblockedscreen_createnewaccountbutton - 새계정 만들기 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthBlockedScreen_createNewAccountButton</span>
+  </div>
+  <div class="ev-desc">- 새계정 만들기</div>
+  
+</div><div class="card" data-search="authfailedscreen_goonboardingbutton - 처음으로 (미결제 내역인 유저의 페이지랑 공통 이벤트) click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AuthFailedScreen_goOnboardingButton</span>
+  </div>
+  <div class="ev-desc">- 처음으로 (미결제 내역인 유저의 페이지랑 공통 이벤트)</div>
+  
+</div><div class="card" data-search="contactusbutton_click * 문의하기 버튼이 다 공통으로 사용되고 있음 click 회원가입 클라이언트" data-cat="회원가입" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">ContactUsButton_click</span>
+  </div>
+  <div class="ev-desc">* 문의하기 버튼이 다 공통으로 사용되고 있음</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div></section><section id="sec_홈" class="cat-section" data-cat="홈"><h2 class="sec-title">홈</h2><div class="card" data-search="maintabscreen 메인 화면 route 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">MainTabScreen</span>
+  </div>
+  <div class="ev-desc">메인 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>MainTabScreen 만 찍을 수 있음. 자현님과 논의 필요. 기본적으로 tabHome으로 진입됨. is_default_tab property 여부 관련해서도 논의 필요.</div></div></details>
+</div><div class="card" data-search="maintabscreen_home 홈 탭 view 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">MainTabScreen_Home</span>
+  </div>
+  <div class="ev-desc">홈 탭</div>
+  
+</div><div class="card" data-search="maintabscreen_orderlist 이용내역 탭 view 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">MainTabScreen_OrderList</span>
+  </div>
+  <div class="ev-desc">이용내역 탭</div>
+  
+</div><div class="card" data-search="maintabscreen_mypage 내 정보 탭 view 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">MainTabScreen_MyPage</span>
+  </div>
+  <div class="ev-desc">내 정보 탭</div>
+  
+</div><div class="card" data-search="이용 방법 이용 안내 페이지 route 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">이용 방법</span>
+  </div>
+  <div class="ev-desc">이용 안내 페이지</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>웹 이벤트 작업 필요 (중요한지 확인 필요)
+= 논의 필요. 웹에서 특정 유저가 탭으로 이동했다는 정보를 트래킹해야함.</div></div></details>
+</div><div class="card" data-search="이용 방법_tabusage 이용방법 click 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">이용 방법_tabUsage</span>
+  </div>
+  <div class="ev-desc">이용방법</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
+= 의도파악 필요.</div></div></details>
+</div><div class="card" data-search="이용 방법_tabitem 수거품목 click 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">이용 방법_tabItem</span>
+  </div>
+  <div class="ev-desc">수거품목</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
+= 의도파악 필요</div></div></details>
+</div><div class="card" data-search="이용 방법_tabprice 이용요금 click 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">이용 방법_tabPrice</span>
+  </div>
+  <div class="ev-desc">이용요금</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
+= 의도파악 필요</div></div></details>
+</div><div class="card" data-search="의견 보내기 의견 보내기페이지 진입 route 홈 클라이언트" data-cat="홈" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">의견 보내기</span>
+  </div>
+  <div class="ev-desc">의견 보내기페이지 진입</div>
+  <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
+</div></section><section id="sec_수거신청" class="cat-section" data-cat="수거신청"><h2 class="sec-title">수거신청</h2><div class="card" data-search="selectorderscreen 배출 품목 선택 화면 route 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SelectOrderScreen</span>
+  </div>
+  <div class="ev-desc">배출 품목 선택 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>어떤 의도로 selected_bag_count // int // 선택된 봉투 갯수
+selected_box_count // int // 선택된 박스 갯수 값을 보내야하는지 확인 필요. 다음 버튼을 클릭했을 때 값을 보낼지, 수거 완료되었을 때 값을 보낼지 확인 필요.
+
+bag 용어 관련해서 확정 필요.</div></div></details>
+</div><div class="card" data-search="selectorderscreen_openitemusageguide 배출방법 확인하기 버튼 클릭 click 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SelectOrderScreen_openItemUsageGuide</span>
+  </div>
+  <div class="ev-desc">배출방법 확인하기 버튼 클릭</div>
+  
+</div><div class="card" data-search="addorderscreen 수거 신청 화면 route 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AddOrderScreen</span>
+  </div>
+  <div class="ev-desc">수거 신청 화면</div>
+  <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>coupon_id // 선택된 쿠폰 ID
+ coupon_type // 쿠폰 유형
+ coupon_discount_amount // 할인 금액
+
+해당 값을 서버에서 보내줄 지 주문에 쿠폰 적용하는 API가 있음. 클라이언트에서 클릭 이벤트와 함께 보내줄지 확인 필요.
+
+view_path는 클라이언트에서 보냄.</div></div></details>
+</div><div class="card" data-search="selectcoupon 쿠폰 리스트 모달 modal 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">SelectCoupon</span>
+  </div>
+  <div class="ev-desc">쿠폰 리스트 모달</div>
+  
+</div><div class="card" data-search="addorderscreen_applycoupon [click] applycoupon 쿠폰 적용하기 버튼 클릭 click 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AddOrderScreen_applyCoupon [CLICK] ApplyCoupon</span>
+  </div>
+  <div class="ev-desc">쿠폰 적용하기 버튼 클릭</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- coupon_description // 쿠폰 설명
+- coupon_discount // 할인 금액
+- view_path // ProductPurchaseScreen에서도 동일하게 쓰이는 쿠폰 모달이라 필요</pre></div><details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>// description으로 유추가능해서 coupon_policy_id 넣을지 말지 고민</div><div class="cmt-item"><span class="cmt-author">예진</span>FE</div></div></details>
+</div><div class="card" data-search="addorderscreen_submitfinal 수거신청 최종 제출 click 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AddOrderScreen_submitFinal</span>
+  </div>
+  <div class="ev-desc">수거신청 최종 제출</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- is_comment // boolean // 요청사항 입력 완료</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>해당 건도 FE와 BE에서 보낼 수 있음. FE에서 클릭할 때 마다 값을 보내거나, 수거 신청이 완료되었을 때 서버에서 보내거나</div></div></details>
+</div><div class="card" data-search="addordercomplete 수거 신청 완료 이벤트 event 수거신청 서버" data-cat="수거신청" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">AddOrderComplete</span>
+  </div>
+  <div class="ev-desc">수거 신청 완료 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- selected_pickupBag_count // int //선택된 봉투 카운트
+
+- selected_box_count // int // 선택된 박스 카운트
+
+- is_coupon_apply //boolean // 쿠폰 적용 유무 
+
+- coveringBag_count // int // 배송해야할 비닐봉투 카운트
+
+- coupon_policy_id // string // 적용된 쿠폰 ID
+
+- accessInfo // enum // 출입방법 선택</pre></div><details class="cmt-wrap"><summary>코멘트 3개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>이미 심어져 있는 것으로 확인 됨</div><div class="cmt-item"><span class="cmt-author">예진</span>BE
+- 이벤트명 확인필요</div><div class="cmt-item"><span class="cmt-author">인준</span>수거 신청 완료 화면, 배출 품목 사진찍기, 홈으로는 클라이언트에서 이벤트 보내고, Event Property는 수거 신청 완료되었을 때 서버에서 보냄.
+
+=&gt; 백엔드 (위의 수거이벤트 통합)</div></div></details>
+</div><div class="card" data-search="addordercompletescreen 수거 신청 완료 화면 route 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AddOrderCompleteScreen</span>
+  </div>
+  <div class="ev-desc">수거 신청 완료 화면</div>
+  
+</div><div class="card" data-search="addordercompletescreen_addphoto 배출 품목 사진찍기 click 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AddOrderCompleteScreen_addPhoto</span>
+  </div>
+  <div class="ev-desc">배출 품목 사진찍기</div>
+  
+</div><div class="card" data-search="addordercompletescreen_gohome 홈으로 click 수거신청 클라이언트" data-cat="수거신청" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AddOrderCompleteScreen_goHome</span>
+  </div>
+  <div class="ev-desc">홈으로</div>
+  
+</div></section><section id="sec_신규유저_결제수단_등록_모달" class="cat-section" data-cat="신규유저_결제수단_등록_모달"><h2 class="sec-title">신규유저 결제수단 등록 모달</h2><div class="card" data-search="addpayment 수거신청에서 결제수단 등록 모달 노출 modal 신규유저 결제수단 등록 모달 클라이언트" data-cat="신규유저_결제수단_등록_모달" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">AddPayment</span>
+  </div>
+  <div class="ev-desc">수거신청에서 결제수단 등록 모달 노출</div>
+  
+</div><div class="card" data-search="addpayment_submit 등록하기 버튼 클릭 click 신규유저 결제수단 등록 모달 클라이언트" data-cat="신규유저_결제수단_등록_모달" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AddPayment_submit</span>
+  </div>
+  <div class="ev-desc">등록하기 버튼 클릭</div>
+  
+</div><div class="card" data-search="addpayment_cancel 돌아가기 버튼 클릭 click 신규유저 결제수단 등록 모달 클라이언트" data-cat="신규유저_결제수단_등록_모달" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AddPayment_cancel</span>
+  </div>
+  <div class="ev-desc">돌아가기 버튼 클릭</div>
+  
+</div></section><section id="sec_쿠폰관리" class="cat-section" data-cat="쿠폰관리"><h2 class="sec-title">쿠폰관리</h2><div class="card" data-search="couponscreen 쿠폰 화면 진입 route 쿠폰관리 클라이언트" data-cat="쿠폰관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">CouponScreen</span>
+  </div>
+  <div class="ev-desc">쿠폰 화면 진입</div>
+  
+</div><div class="card" data-search="couponscreen_couponcode 쿠폰코드 입력 창 옆 받기 버튼 클릭 click 쿠폰관리 클라이언트" data-cat="쿠폰관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">CouponScreen_couponCode</span>
+  </div>
+  <div class="ev-desc">쿠폰코드 입력 창 옆 받기 버튼 클릭</div>
+  
+</div><div class="card" data-search="couponissued 쿠폰 발급된 이벤트 event 쿠폰관리 서버" data-cat="쿠폰관리" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">CouponIssued</span>
+  </div>
+  <div class="ev-desc">쿠폰 발급된 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>coupon_policy_id // string // 발급된 쿠폰 ID
+
+coupon_description // string // 쿠폰 설명 ( ex. &quot;크리스마스 쿠폰&quot; )
+
+coupon_discount // int // 할인 금액
+
+coupon_dueDate // timestamp// 쿠폰 만료기간
+
+min_order_amount // int // 최소 주문 금액
+
+max_discount_amount // int // 최대 할인 금액
+
+discount_type // string? enum? // 쿠폰 할인 타입 ex. 퍼센트/고정금액
+
+code_type // string? enum? //쿠폰 코드 타입 - 코드 없음/재사용 가능/재사용 불가</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>쿠폰 속성 확인 후 자현님한테 전달 예정
+
+- coupon_id // 발급된 쿠폰 ID
+- coupon_policy_id 로 변경 가능할 지 질문 드립니다.
+- DB 기준으로 coupon_policy는 쿠폰 종류, coupon은 쿠폰 코드로 구분짓고 있어, 혼동될 가능성이 있어보입니다. (쿠폰 코드 없는 쿠폰도 존재함)
+- 제품팀 입장에서 애매할 거 같으면 괜찮습니다! 어디 기록만 해두면 될 거 같습니다.
++) coupon_policy_id 아니어도 됨, coupon_id 랑 구분만 되도록
++) 2차 이벤트 범위였던 &#x27;[EVENT] AddOrderComplete&#x27; 에서 이미 coupon_id 로 사용되고 있다는 점 참고 부탁드립니다..
+
+coupon_title // 쿠폰 이름
+coupon_discount // 실제 할인된 금액
+coupon_dueDate // 쿠폰 만료기간
+
+min_order_amount // 최소 주문 금액
+max_discount_amount // 최대 할인 금액
+discount_type // 쿠폰 할인 타입 ex. 퍼센트/고정금액
+code_type // 쿠폰 코드 타입 - 코드 없음/재사용 가능/재사용 불가</div></div></details>
+</div><div class="card" data-search="couponconsumed 쿠폰 사용 완료 event 쿠폰관리 서버" data-cat="쿠폰관리" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">CouponConsumed</span>
+  </div>
+  <div class="ev-desc">쿠폰 사용 완료</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>order_type // enum // 주문 타입 // 수거 or 프로덕트
+
+coupon_policy_id // string // 발급된 쿠폰 ID
+
+coupon_description // string // 쿠폰 설명 ( ex. &quot;크리스마스 쿠폰&quot; )
+
+coupon_discount // int // 할인 금액
+
+coupon_dueDate // timestamp// 쿠폰 만료기간
+
+min_order_amount // int // 최소 주문 금액
+
+max_discount_amount // int // 최대 할인 금액
+
+discount_type // string? enum? // 쿠폰 할인 타입 ex. 퍼센트/고정금액
+
+code_type // string? enum? // 쿠폰 코드 타입 - 코드 없음/재사용 가능/재사용 불가</pre></div><details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>쿠폰 사용 여부를 확인하기 위한 이벤트
+발생 위치는 고민 ( 시간 타임으로 찍을 수 있는 지? )
+유저 단위 상태 변화
+
+// 개발 논의 후 최종 결정</div><div class="cmt-item"><span class="cmt-author">예진</span>쿠폰 적용이 아닌, 사용 시점
+- 스케줄러 가능 여부 확인 후, 만약 안될 거 같으면 이벤트 삭제
+
+=&gt; 인준님과 논의 후 말씀드리겠습니다. (구현은 가능하나 개발 범위가 좀 있다고 생각)
+
+=&gt; 배치 서버에도 믹스패널 적용하도록 결정</div></div></details>
+</div><div class="card" data-search="couponapplied 쿠폰 적용 완료 event 쿠폰관리 서버" data-cat="쿠폰관리" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">CouponApplied</span>
+  </div>
+  <div class="ev-desc">쿠폰 적용 완료</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>order_type // enum // 주문 타입  // 수거 or 프로덕트
+
+coupon_policy_id // string // 발급된 쿠폰 ID
+
+coupon_description // string // 쿠폰 설명 ( ex. &quot;크리스마스 쿠폰&quot; )
+
+coupon_discount //  int // 할인 금액
+
+coupon_dueDate // timestamp // 쿠폰 만료기간
+
+min_order_amount // 최소 주문 금액
+
+max_discount_amount // int // 최대 할인 금액
+
+discount_type // string? enum? // 쿠폰 할인 타입 ex. 퍼센트/고정금액
+
+code_type // string? enum? // 쿠폰 코드 타입 - 코드 없음/재사용 가능/재사용 불가</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>나머지는 ‘[EVENT] CouponIssued’ 와 동일
+
+order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분 가능
+
+
+[ 26.1.9 구두 논의 ]  해당 이벤트 제거
+쿠폰 적용 기준: UI 상 실제 &#x27;쿠폰을 선택&#x27;하는 시점
+현재 서버 구조로는 트리거 걸기 어려운 상태
+  &gt; 일단 클라이언트 [CLICK] ApplyCoupon로 대체
+  &gt; 서버에서는 [EVENT] CouponConsumed(쿠폰 사용 완료) 이벤트만
+추후 &#x27;쿠폰 적용&#x27; 중요도가 크다고 판달 될 경우, 서버 API 구조 변경될 수도</div></div></details>
+</div></section><section id="sec_회원_탈퇴" class="cat-section" data-cat="회원_탈퇴"><h2 class="sec-title">회원 탈퇴</h2><div class="card" data-search="withdrawalintroscreen 탈퇴 화면 진입 route 회원 탈퇴 클라이언트" data-cat="회원_탈퇴" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">WithdrawalIntroScreen</span>
+  </div>
+  <div class="ev-desc">탈퇴 화면 진입</div>
+  
+</div><div class="card" data-search="withdrawalintroscreen_cancel 나가기 버튼 클릭 click 회원 탈퇴 클라이언트" data-cat="회원_탈퇴" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">WithdrawalIntroScreen_cancel</span>
+  </div>
+  <div class="ev-desc">나가기 버튼 클릭</div>
+  
+</div><div class="card" data-search="withdrawalintroscreen_next 다음으로 버튼 클릭 click 회원 탈퇴 클라이언트" data-cat="회원_탈퇴" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">WithdrawalIntroScreen_next</span>
+  </div>
+  <div class="ev-desc">다음으로 버튼 클릭</div>
+  
+</div><div class="card" data-search="withdrawalreasonscreen 탈퇴 사유 선택 스크린 route 회원 탈퇴 클라이언트" data-cat="회원_탈퇴" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">WithdrawalReasonScreen</span>
+  </div>
+  <div class="ev-desc">탈퇴 사유 선택 스크린</div>
+  
+</div><div class="card" data-search="withdrawalreasonscreen_cancel 서비스 계속 사용하기 버튼 누르기 click 회원 탈퇴 클라이언트" data-cat="회원_탈퇴" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">WithdrawalReasonScreen_cancel</span>
+  </div>
+  <div class="ev-desc">서비스 계속 사용하기 버튼 누르기</div>
+  
+</div><div class="card" data-search="withdrawalreasonscreen_solution 회원탈퇴 솔루션 클릭 이벤트 click 회원 탈퇴 클라이언트" data-cat="회원_탈퇴" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">WithdrawalReasonScreen_solution</span>
+  </div>
+  <div class="ev-desc">회원탈퇴 솔루션 클릭 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>withdrawal_solution_title // string // 솔루션 명
+withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>// 솔루션이 실질적으로 도움이 되었는 지 알기 위해 솔루션 별로 클릭 비율을 알고 싶습니다.</div></div></details>
+</div><div class="card" data-search="withdrawalcomplete 탈퇴 완료 이벤트 event 회원 탈퇴 서버" data-cat="회원_탈퇴" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">WithdrawalComplete</span>
+  </div>
+  <div class="ev-desc">탈퇴 완료 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>withdrawal_reason // enum // 선택된 탈퇴 사유</pre></div>
+</div></section><section id="sec_앱_설정" class="cat-section" data-cat="앱_설정"><h2 class="sec-title">앱 설정</h2><div class="card" data-search="appsettingscreen 앱 설정 화면 route 앱 설정 클라이언트" data-cat="앱_설정" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AppSettingScreen</span>
+  </div>
+  <div class="ev-desc">앱 설정 화면</div>
+  
+</div><div class="card" data-search="appnotification_agreement 앱 알림 동의/비동의 이벤트 발생 여부 click 앱 설정 클라이언트" data-cat="앱_설정" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AppNotification_agreement</span>
+  </div>
+  <div class="ev-desc">앱 알림 동의/비동의 이벤트 발생 여부</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_agreement // boolean // 동의 여부</pre></div><details class="cmt-wrap"><summary>코멘트 3개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>//초반에 앱 동의 관련해서 같은 이벤트로 찍히면 됨
+
+추가) 유저 프로퍼티로 넣을 수 있나?
+- 앱 수신 동의 유저 
+- 마케팅 수신 동의 유저를 발라내서 봐야할 것 같음
+
++ 유저의 액션 자체의 시도도 알아봐야 함
+
+// 클릭 비율 (마케팅수신동의 ) 
+
+// 최종 동의율은 유저 프로퍼티로 넣기 
+
+// 결정 앱 알림은 클라이언트에서 작성 -&gt; 나연님과 논의 필요 
+// 구현 완료  
+
+
+1. 앱 알림 토글 클릭 시에 이벤트 전송.
+2. is_agreement 프로퍼티에는 변경 전 상태 들어감.
+3. 유저 프로퍼티로 현재 유저의 알림 허용 여부 추가</div><div class="cmt-item"><span class="cmt-author">예진</span>유저 프로퍼티로 변경 (현재 시점 동의 여부 필요)
+클라이언트</div><div class="cmt-item"><span class="cmt-author">나연</span>클라이언트에서 앱 알림 수신동의 여부를 확인 가능한지 알아봐야함</div></div></details>
+</div></section><section id="sec_결제수단_등록" class="cat-section" data-cat="결제수단_등록"><h2 class="sec-title">결제수단 등록</h2><div class="card" data-search="paymentscreen 결제 수단 목록 화면 route 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">PaymentScreen</span>
+  </div>
+  <div class="ev-desc">결제 수단 목록 화면</div>
+  
+</div><div class="card" data-search="paymentscreen_edit 카드 편집 버튼 클릭 click 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">PaymentScreen_edit</span>
+  </div>
+  <div class="ev-desc">카드 편집 버튼 클릭</div>
+  
+</div><div class="card" data-search="paymentscreen_delete 카드 삭제 클릭 click 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">PaymentScreen_delete</span>
+  </div>
+  <div class="ev-desc">카드 삭제 클릭</div>
+  
+</div><div class="card" data-search="paymentdeletemodal_delete 모달 내 - 최종 카드 삭제하기 클릭 click 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">PaymentDeleteModal_delete</span>
+  </div>
+  <div class="ev-desc">모달 내 - 최종 카드 삭제하기 클릭</div>
+  
+</div><div class="card" data-search="paymentscreen_addpayment 새로운 카드 등록하기 클릭 click 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">PaymentScreen_addPayment</span>
+  </div>
+  <div class="ev-desc">새로운 카드 등록하기 클릭</div>
+  
+</div><div class="card" data-search="addpaymentscreen 결제 수단 추가 화면 route 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AddPaymentScreen</span>
+  </div>
+  <div class="ev-desc">결제 수단 추가 화면</div>
+  
+</div><div class="card" data-search="addpaymentcompletescreen 결제 수단 추가 완료 화면 route 결제수단 등록 클라이언트" data-cat="결제수단_등록" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AddPaymentCompleteScreen</span>
+  </div>
+  <div class="ev-desc">결제 수단 추가 완료 화면</div>
+  
+</div><div class="card" data-search="addpaymentresult 카드 등록 최종 이벤트 event 결제수단 등록 서버" data-cat="결제수단_등록" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">AddPaymentResult</span>
+  </div>
+  <div class="ev-desc">카드 등록 최종 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success // boolean // 성공 실패 여부
+
+error_message // string // PG에서 내려주는 에러 코드
+
+payment_type // string // corporation, individual //  법인, 개인 어떤 카드인지 추적
+
+is_defaultPayment // boolean // 대표카드 설정 되었는 지?
+
+payment_company // string // ex. 신한, 국민, 하나</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>속성 확인 필요
+
+is_success // bool // 성공 실패 여부
+error_message // string // PG에서 내려주는 에러 코드
+card_type // corporation, individual // 법인, 개인 어떤 카드인지 추적
+is_defaultCard // bool // 대표카드 설정 되었는지?
+
+
+card_name // ex. 신한, 국민, 하나
+pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div></details>
+</div></section><section id="sec_서비스지역" class="cat-section" data-cat="서비스지역"><h2 class="sec-title">서비스지역</h2><div class="card" data-search="서비스 지역 서비스 지역 화면 route 서비스지역 클라이언트" data-cat="서비스지역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">서비스 지역</span>
+  </div>
+  <div class="ev-desc">서비스 지역 화면</div>
+  
+</div></section><section id="sec_친구_초대" class="cat-section" data-cat="친구_초대"><h2 class="sec-title">친구 초대</h2><div class="card" data-search="inviteinfoscreen 친구 초대 화면 route 친구 초대 클라이언트" data-cat="친구_초대" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">InviteInfoScreen</span>
+  </div>
+  <div class="ev-desc">친구 초대 화면</div>
+  
+</div><div class="card" data-search="inviteinfoscreen_invitehowto 친구초대 방법 탭 view 친구 초대 클라이언트" data-cat="친구_초대" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">InviteInfoScreen_InviteHowTo</span>
+  </div>
+  <div class="ev-desc">친구초대 방법 탭</div>
+  
+</div><div class="card" data-search="inviteinfoscreen_enterinvitecode 초대코드 등록 탭 view 친구 초대 클라이언트" data-cat="친구_초대" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">InviteInfoScreen_EnterInviteCode</span>
+  </div>
+  <div class="ev-desc">초대코드 등록 탭</div>
+  
+</div><div class="card" data-search="inviteinfoscreen_enterinvitecode 초대 코드 복사 버튼 클릭 view 친구 초대 클라이언트" data-cat="친구_초대" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">InviteInfoScreen_EnterInviteCode</span>
+  </div>
+  <div class="ev-desc">초대 코드 복사 버튼 클릭</div>
+  
+</div></section><section id="sec_공지사항" class="cat-section" data-cat="공지사항"><h2 class="sec-title">공지사항</h2><div class="card" data-search="공지사항  route 공지사항 클라이언트" data-cat="공지사항" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">공지사항</span>
+  </div>
+  
+  
+</div></section><section id="sec_주소_관리" class="cat-section" data-cat="주소_관리"><h2 class="sec-title">주소 관리</h2><div class="card" data-search="useraddresslistscreen 주소 관리 화면 route 주소 관리 클라이언트" data-cat="주소_관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">UserAddressListScreen</span>
+  </div>
+  <div class="ev-desc">주소 관리 화면</div>
+  
+</div><div class="card" data-search="useraddresslistscreen_setdefault 바텀다이얼로그 - 기본 주소로 설정 click 주소 관리 클라이언트" data-cat="주소_관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">UserAddressListScreen_setDefault</span>
+  </div>
+  <div class="ev-desc">바텀다이얼로그 - 기본 주소로 설정</div>
+  
+</div><div class="card" data-search="useraddresslistscreen_delete 바텀다이얼로그 - 주소 삭제 클릭 click 주소 관리 클라이언트" data-cat="주소_관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">UserAddressListScreen_delete</span>
+  </div>
+  <div class="ev-desc">바텀다이얼로그 - 주소 삭제 클릭</div>
+  
+</div><div class="card" data-search="addaddressscreen 주소 추가 화면 route 주소 관리 클라이언트" data-cat="주소_관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AddAddressScreen</span>
+  </div>
+  <div class="ev-desc">주소 추가 화면</div>
+  
+</div><div class="card" data-search="searchaddressscreen 주소 검색 화면 route 주소 관리 클라이언트" data-cat="주소_관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SearchAddressScreen</span>
+  </div>
+  <div class="ev-desc">주소 검색 화면</div>
+  
+</div><div class="card" data-search="addaddressresult 주소 추가 결과 event 주소 관리 서버" data-cat="주소_관리" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">AddAddressResult</span>
+  </div>
+  <div class="ev-desc">주소 추가 결과</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 성공유무
+
+error_message // string // 에러 메세지 반환
+
+address_id // string // 설정된 주소 값 
+
+is_filled / boolean / true &amp; false // 주소 별칭 추가되었는지 
+
+accessInfo // enum // 출입방법 선택</pre></div>
+</div><div class="card" data-search="editaddressscreen 주소 수정 화면 route 주소 관리 클라이언트" data-cat="주소_관리" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">EditAddressScreen</span>
+  </div>
+  <div class="ev-desc">주소 수정 화면</div>
+  
+</div><div class="card" data-search="editaddressresult 수정 완료 결과 event 주소 관리 서버" data-cat="주소_관리" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">EditAddressResult</span>
+  </div>
+  <div class="ev-desc">수정 완료 결과</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 성공유무
+
+error_message // string // 에러 메세지 반환
+
+address_id // string // 설정된 주소 값 
+
+is_filled / boolean / true &amp; false // 주소 별칭 추가되었는지 
+
+accessInfo // enum // 출입방법 선택</pre></div>
+</div></section><section id="sec_이용_내역" class="cat-section" data-cat="이용_내역"><h2 class="sec-title">이용 내역</h2><div class="card" data-search="orderdetailscreen 주문 상세 화면 진입시 route 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">OrderDetailScreen</span>
+  </div>
+  <div class="ev-desc">주문 상세 화면 진입시</div>
+  
+</div><div class="card" data-search="orderdetailscreen 주문 상세 화면 view 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">OrderDetailScreen</span>
+  </div>
+  <div class="ev-desc">주문 상세 화면</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>order_id // string // 주문 아이디
+
+order_created_at // timestamp // 주문 날짜
+
+order_status // enum // 주문 상태 값 // 배송 전, 배송 후 , 준비 중 등...
+
+order_type // enum // 주문 타입 // 수거 or 프로덕트
+
+order_originalPayableAmount // int  // 원래 결제 금액 (없을 경우 = 0)
+
+order_actualPayableAmount // int // 할인받고 결제하는 최종 결제 금액
+
+
+
+accessInfo // enum // 출입방법 선택 
+
+comment //enum or string //배송 요청사항
+
+
+
+is_coupon_apply // boolean // 쿠폰 적용 여부
+
+
+
+selected_pickupBag_count // int //선택된 봉투 카운트
+
+selected_box_count // int // 선택된 박스 카운트
+
+coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
+</div><div class="card" data-search="orderdetailscreen_snackbar 주문 상세 화면 내 - 구독 진입 이벤트 click 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">OrderDetailScreen_snackbar</span>
+  </div>
+  <div class="ev-desc">주문 상세 화면 내 - 구독 진입 이벤트</div>
+  
+</div><div class="card" data-search="selectcoupon 쿠폰 적용시 들어가는 모달 modal 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">SelectCoupon</span>
+  </div>
+  <div class="ev-desc">쿠폰 적용시 들어가는 모달</div>
+  
+</div><div class="card" data-search="applycoupon 쿠폰 적용 버튼 클릭 click 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">ApplyCoupon</span>
+  </div>
+  <div class="ev-desc">쿠폰 적용 버튼 클릭</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- coupon_policy_id // 선택된 쿠폰 ID
+
+- coupon_description // string // 쿠폰 설명 ( ex. &quot;크리스마스 쿠폰&quot; )
+
+- coupon_discount // 할인 금액</pre></div>
+</div><div class="card" data-search="updateorderscreen 주문 수정 화면 route 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">UpdateOrderScreen</span>
+  </div>
+  <div class="ev-desc">주문 수정 화면</div>
+  
+</div><div class="card" data-search="updateordersubmit 수정 후 변동 사항 이벤트 event 이용 내역 서버" data-cat="이용_내역" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">UpdateOrderSubmit</span>
+  </div>
+  <div class="ev-desc">수정 후 변동 사항 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>// 어떤 필드가 바뀌었는 지를 알기 위함
+
+is_selected_pickupBag_count_changed // boolean // 변경된 픽업봉투
+
+is_selected_box_count_changed // boolean // 변경된 픽업택배박스
+
+is_accessInfo_changed&quot;// boolean // 출입방법
+
+is_comment_changed // boolean // 기타요청사항
+
+is_coveringBag_count_changed // boolean // 배송해야할 비닐봉투 변경</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>// 변경 후 데이터도 수집 가능한지? 
+- selected_pickupBag_count // int //선택된 봉투 카운트
+- selected_box_count // int // 선택된 박스 카운트
+- is_coupon_apply //boolean // 쿠폰 적용 유무 
+- coveringBag_count // int // 배송해야할 비닐봉투 카운트
+- accessInfo // enum // 출입방법 선택</div></div></details>
+</div><div class="card" data-search="ordercancel 주문 취소 이벤트 event 이용 내역 서버" data-cat="이용_내역" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">OrderCancel</span>
+  </div>
+  <div class="ev-desc">주문 취소 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>order_id // string // 주문 아이디
+
+order_created_at// timestamp // 주문 날짜
+
+cancel_at // timestamp // 취소 날짜 
+
+order_status // enum // 주문 상태 값 // 배송 전, 배송 후 , 준비 중 등...
+
+order_originalPayableAmount // int  // 원래 결제 금액
+
+order_actualPayableAmount // int // 할인받고 결제하는 최종 결제 금액
+
+
+
+address_id // string // 배송지로 선택된 주소의 ID
+
+accessInfo // enum // 출입방법 선택 
+
+comment //enum or string //배송 요청사항
+
+
+
+coupon_policy_id // 사용된 쿠폰의 ID
+
+is_coupon_apply // boolean // 쿠폰 적용 유무  
+
+
+
+selected_pickupBag_count // int //선택된 봉투 카운트
+
+selected_box_count // int // 선택된 박스 카운트
+
+coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
+</div><div class="card" data-search="imageviewerscreen 이미지 뷰어 화면 route 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">ImageViewerScreen</span>
+  </div>
+  <div class="ev-desc">이미지 뷰어 화면</div>
+  
+</div><div class="card" data-search="더 알아보기 더 알아보기 화면 route 이용 내역 클라이언트" data-cat="이용_내역" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">더 알아보기</span>
+  </div>
+  <div class="ev-desc">더 알아보기 화면</div>
+  
+</div></section><section id="sec_직접_결제_관련" class="cat-section" data-cat="직접_결제_관련"><h2 class="sec-title">직접 결제 관련</h2><div class="card" data-search="paymentmethodselect 결제수단 선택 모달 modal 직접 결제 관련 클라이언트" data-cat="직접_결제_관련" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">PaymentMethodSelect</span>
+  </div>
+  <div class="ev-desc">결제수단 선택 모달</div>
+  
+</div><div class="card" data-search="paymentmethodselect_addpayment 바텀 다이얼로그 내 결제수단 추가하기 click 직접 결제 관련 클라이언트" data-cat="직접_결제_관련" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">PaymentMethodSelect_addPayment</span>
+  </div>
+  <div class="ev-desc">바텀 다이얼로그 내 결제수단 추가하기</div>
+  
+</div><div class="card" data-search="paymentcompletedscreen 직접 결제 완료 랜딩 route 직접 결제 관련 클라이언트" data-cat="직접_결제_관련" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">PaymentCompletedScreen</span>
+  </div>
+  <div class="ev-desc">직접 결제 완료 랜딩</div>
+  
+</div><div class="card" data-search="orderpaymentresult 수거 주문 직접/ 자동 결제 완료 서버 이벤트 event 직접 결제 관련 서버" data-cat="직접_결제_관련" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">OrderPaymentResult</span>
+  </div>
+  <div class="ev-desc">수거 주문 직접/ 자동 결제 완료 서버 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 결제 성공 여부
+
+error_message// string //실패 원인
+
+
+
+order_id // string // 주문 아이디
+
+order_created_at// timestamp // 주문 날짜,시간
+
+order_originalPayableAmount // int  // 원래 결제 금액
+
+order_actualPayableAmount // int // 할인받고 결제하는 최종 결제 금액
+
+payment_method // enum // kakao, card // 유저가 최종 선택한 결제수단
+
+
+
+address_id // string // 배송지로 선택된 주소의 ID
+
+accessInfo // enum // 출입방법 선택 
+
+comment //enum or string //배송 요청사항
+
+
+
+coupon_policy_id // 사용된 쿠폰의 ID
+
+is_coupon_apply // boolean // 쿠폰 적용 유무  
+
+
+
+selected_pickupBag_count // int //선택된 봉투 카운트
+
+selected_box_count // int // 선택된 박스 카운트
+
+coveringBag_count // int // 배송해야할 비닐봉투 카운트
+
+weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>- 특별히 더 추가될만한 속성은 없어보입니다!
+- coupon_id &gt; 네이밍 확인 필요
+
+질문) order_amount, payment_amount 차이??
+- order_amount &gt; order_salesPrice = 할인 적용 전 원가 
+- payment_amount &gt; order_discountPrice = 할인 적용 후 최종 금액 
+질문) 여기서는 order_quantity(covering bag) 수량만 들어가면 되는 건가요? pickup bag, box는 필요없나요?
+- 추가 완료</div></div></details>
+</div><div class="card" data-search="kakaopaymentscreen 카카오페이 결제 화면 route 직접 결제 관련 클라이언트" data-cat="직접_결제_관련" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">KakaoPaymentScreen</span>
+  </div>
+  <div class="ev-desc">카카오페이 결제 화면</div>
+  
+</div></section><section id="sec_홈__서비스_이용지역_외_" class="cat-section" data-cat="홈__서비스_이용지역_외_"><h2 class="sec-title">홈 (서비스 이용지역 외)</h2><div class="card" data-search="home_serviceopenofferscreen 서비스 지역 오픈 요청 click 홈 (서비스 이용지역 외) 클라이언트" data-cat="홈__서비스_이용지역_외_" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Home_ServiceOpenOfferScreen</span>
+  </div>
+  <div class="ev-desc">서비스 지역 오픈 요청</div>
+  
+</div><div class="card" data-search="home_serviceshare 서비스 지역 공유 버튼 click 홈 (서비스 이용지역 외) 클라이언트" data-cat="홈__서비스_이용지역_외_" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Home_ServiceShare</span>
+  </div>
+  <div class="ev-desc">서비스 지역 공유 버튼</div>
+  
+</div></section><section id="sec_내_정보_설정" class="cat-section" data-cat="내_정보_설정"><h2 class="sec-title">내 정보 설정</h2><div class="card" data-search="userprofilescreen 내 정보 설정 route 내 정보 설정 클라이언트" data-cat="내_정보_설정" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">UserProfileScreen</span>
+  </div>
+  <div class="ev-desc">내 정보 설정</div>
+  
+</div><div class="card" data-search="updatenicknamescreen 프로필 이름 변경 화면 route 내 정보 설정 클라이언트" data-cat="내_정보_설정" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">UpdateNicknameScreen</span>
+  </div>
+  <div class="ev-desc">프로필 이름 변경 화면</div>
+  
+</div><div class="card" data-search="updatenicknameresult // 제거 닉네임 변경하기 이벤트 event 내 정보 설정 서버" data-cat="내_정보_설정" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">UpdateNicknameResult // 제거</span>
+  </div>
+  <div class="ev-desc">닉네임 변경하기 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success//boolean// true/false// 변경 성공 여부
+
+error_message// string //실패 원인</pre></div><details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>[서버 이벤트로 진행해도 무관]
+이전 구독 이벤트 프로퍼티는 프론트로 했던 것 같아서 결정하면 될 듯 
+
+// 예진님 검증 필요</div><div class="cmt-item"><span class="cmt-author">예진</span>서버 - 실패원인 / 검증 위치 확인 후, 클라이언트면 속성 제거</div></div></details>
+</div><div class="card" data-search="updatephonescreen 휴대폰 번호 변경  화면 진입 route 내 정보 설정 클라이언트" data-cat="내_정보_설정" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">UpdatePhoneScreen</span>
+  </div>
+  <div class="ev-desc">휴대폰 번호 변경  화면 진입</div>
+  
+</div><div class="card" data-search="updatephonesresult 휴대폰 번호 변경하기 event 내 정보 설정 서버" data-cat="내_정보_설정" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">UpdatePhoneSResult</span>
+  </div>
+  <div class="ev-desc">휴대폰 번호 변경하기</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success//boolean// true/false// 변경 성공 여부
+
+error_message// string //실패 원인</pre></div>
+</div></section><section id="sec_봉투_구매" class="cat-section" data-cat="봉투_구매"><h2 class="sec-title">봉투 구매</h2><div class="card" data-search="productscreen 봉투 구매 상세 화면 (only 기존유저) route 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">ProductScreen</span>
+  </div>
+  <div class="ev-desc">봉투 구매 상세 화면 (only 기존유저)</div>
+  
+</div><div class="card" data-search="productscreen_viewmoreproductinfo 상품정보 더보기 click click 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">ProductScreen_viewMoreProductInfo</span>
+  </div>
+  <div class="ev-desc">상품정보 더보기 click</div>
+  
+</div><div class="card" data-search="productpurchasescreen 봉투 구매 주문 화면 ( 기존유저 + 신규유저 ) route 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">ProductPurchaseScreen</span>
+  </div>
+  <div class="ev-desc">봉투 구매 주문 화면 ( 기존유저 + 신규유저 )</div>
+  
+</div><div class="card" data-search="productpurchasescreen_editcomment 배송 요청사항 click click 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">ProductPurchaseScreen_editComment</span>
+  </div>
+  <div class="ev-desc">배송 요청사항 click</div>
+  
+</div><div class="card" data-search="productpurchasescreen_editaccessinfo 출입방법 입력하기 click click 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">ProductPurchaseScreen_editAccessInfo</span>
+  </div>
+  <div class="ev-desc">출입방법 입력하기 click</div>
+  
+</div><div class="card" data-search="productpurchasescreen_loaduserinfo 내 정보 불러오기 click click 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">ProductPurchaseScreen_loadUserInfo</span>
+  </div>
+  <div class="ev-desc">내 정보 불러오기 click</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_active// boolean // 활성화 여부</pre></div>
+</div><div class="card" data-search="bagquantity 봉투수량 모달 노출 modal 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">BagQuantity</span>
+  </div>
+  <div class="ev-desc">봉투수량 모달 노출</div>
+  
+</div><div class="card" data-search="bagquantity_submit 봉투수량 모달 내부에서 수량 선택 버튼 클릭 click 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">BagQuantity_submit</span>
+  </div>
+  <div class="ev-desc">봉투수량 모달 내부에서 수량 선택 버튼 클릭</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>product_quantity // int // 수량 선택</pre></div>
+</div><div class="card" data-search="productpurchasecompletescreen 봉투 구매 주문 완료 화면 route 봉투 구매 클라이언트" data-cat="봉투_구매" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">ProductPurchaseCompleteScreen</span>
+  </div>
+  <div class="ev-desc">봉투 구매 주문 완료 화면</div>
+  
+</div><div class="card" data-search="productpurchaseresult 물품(=현재는 봉투만) 구매 주문 결과값 event 봉투 구매 서버" data-cat="봉투_구매" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">ProductPurchaseResult</span>
+  </div>
+  <div class="ev-desc">물품(=현재는 봉투만) 구매 주문 결과값</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 결제 성공 여부
+
+error_message// string //실패 원인
+
+
+
+order_id // string // 주문 아이디
+
+order_created_at// timestamp // 주문 날짜
+
+order_originalPayableAmount // int  // 원래 결제 금액
+
+order_actualPayableAmount // int // 할인받고 결제하는 최종 결제 금액
+
+payment_method // enum //kakao, card // 유저가 최종 선택한 결제수단
+
+
+
+address_id // string // 배송지로 선택된 주소의 ID
+
+accessInfo // enum // 출입방법 선택 
+
+comment //enum or string //배송 요청사항
+
+
+
+coupon_policy_id // 사용된 쿠폰의 ID
+
+is_coupon_apply // boolean // 쿠폰 적용 유무
+
+
+
+product_totalQuantity //구매한 제품의 총 수량</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>속성 확인 필요</div></div></details>
+</div><div class="card" data-search="productpurchasecancel 주문 취소 이벤트 event 봉투 구매 서버" data-cat="봉투_구매" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">ProductPurchaseCancel</span>
+  </div>
+  <div class="ev-desc">주문 취소 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>order_id // string // 주문 아이디
+
+order_created_at// timestamp // 주문 날짜
+
+cancel_at // timestamp // 취소 날짜 
+
+order_originalPayableAmount // int  // 원래 결제 금액
+
+order_actualPayableAmount // int // 할인받고 결제하는 최종 결제 금액
+
+payment_method // enum //kakao, card // 유저가 최종 선택한 결제수단
+
+
+
+address_id // string // 배송지로 선택된 주소의 ID
+
+accessInfo // enum // 출입방법 선택 
+
+comment //enum or string //배송 요청사항
+
+
+
+coupon_policy_id // 사용된 쿠폰의 ID
+
+is_coupon_apply // boolean // 쿠폰 적용 유무  
+
+
+
+product_totalQuantity //구매한 제품의 총 수량</pre></div>
+</div></section><section id="sec_리뷰_화면" class="cat-section" data-cat="리뷰_화면"><h2 class="sec-title">리뷰 화면</h2><div class="card" data-search="reviewscreen 리뷰 화면 route 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">ReviewScreen</span>
+  </div>
+  <div class="ev-desc">리뷰 화면</div>
+  
+</div><div class="card" data-search="requeststorereviewscreen 스토어 리뷰 요청 화면 route 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">RequestStoreReviewScreen</span>
+  </div>
+  <div class="ev-desc">스토어 리뷰 요청 화면</div>
+  
+</div><div class="card" data-search="requeststorereviewscreen_writereview 리뷰 작성하기 click click 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">RequestStoreReviewScreen_writeReview</span>
+  </div>
+  <div class="ev-desc">리뷰 작성하기 click</div>
+  
+</div><div class="card" data-search="requeststorereviewscreen_skip 다음에요 click click 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">RequestStoreReviewScreen_skip</span>
+  </div>
+  <div class="ev-desc">다음에요 click</div>
+  
+</div><div class="card" data-search="requestfeedbackscreen 피드백 요청 화면 route 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">RequestFeedbackScreen</span>
+  </div>
+  <div class="ev-desc">피드백 요청 화면</div>
+  
+</div><div class="card" data-search="requestfeedbackscreen_writefeedback 피드백 작성 버튼 클릭 click 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">RequestFeedbackScreen_writeFeedback</span>
+  </div>
+  <div class="ev-desc">피드백 작성 버튼 클릭</div>
+  
+</div><div class="card" data-search="requestfeedbackscreen_skip 다음에요 버튼 클릭 click 리뷰 화면 클라이언트" data-cat="리뷰_화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">RequestFeedbackScreen_skip</span>
+  </div>
+  <div class="ev-desc">다음에요 버튼 클릭</div>
+  
+</div></section><section id="sec_의미없음" class="cat-section" data-cat="의미없음"><h2 class="sec-title">의미없음</h2><div class="card" data-search="null null 화면 route 의미없음 클라이언트" data-cat="의미없음" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">null</span>
+  </div>
+  <div class="ev-desc">null 화면</div>
+  
+</div></section><section id="sec_이벤트화면" class="cat-section" data-cat="이벤트화면"><h2 class="sec-title">이벤트화면</h2><div class="card" data-search="5% 쿠폰 지급 5% 쿠폰 지급 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">5% 쿠폰 지급</span>
+  </div>
+  <div class="ev-desc">5% 쿠폰 지급 화면</div>
+  
+</div><div class="card" data-search="8kg 초과 배출 8kg 초과 배출 할인 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">8kg 초과 배출</span>
+  </div>
+  <div class="ev-desc">8kg 초과 배출 할인 화면</div>
+  
+</div><div class="card" data-search="기본요금 0원 기본요금 0원 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">기본요금 0원</span>
+  </div>
+  <div class="ev-desc">기본요금 0원 화면</div>
+  
+</div><div class="card" data-search="등급제 쿠폰 등급제 쿠폰 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">등급제 쿠폰</span>
+  </div>
+  <div class="ev-desc">등급제 쿠폰 화면</div>
+  
+</div><div class="card" data-search="배송/교환/환불 배송 교환 환불 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">배송/교환/환불</span>
+  </div>
+  <div class="ev-desc">배송 교환 환불 화면</div>
+  
+</div><div class="card" data-search="appupdatescreen appupdate 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">AppUpdateScreen</span>
+  </div>
+  <div class="ev-desc">AppUpdate 화면</div>
+  
+</div><div class="card" data-search="appupdatescreen_gotostore 업데이트하러가기 click 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">AppUpdateScreen_goToStore</span>
+  </div>
+  <div class="ev-desc">업데이트하러가기</div>
+  
+</div><div class="card" data-search="신규 지역 오픈 신규 지역 오픈 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">신규 지역 오픈</span>
+  </div>
+  <div class="ev-desc">신규 지역 오픈 화면</div>
+  
+</div><div class="card" data-search="연휴 휴무 안내 연휴 휴무 안내 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">연휴 휴무 안내</span>
+  </div>
+  <div class="ev-desc">연휴 휴무 안내 화면</div>
+  
+</div><div class="card" data-search="정상 운영 안내 정상 운영 안내 화면 route 이벤트화면 클라이언트" data-cat="이벤트화면" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">정상 운영 안내</span>
+  </div>
+  <div class="ev-desc">정상 운영 안내 화면</div>
+  
+</div></section><section id="sec_배너" class="cat-section" data-cat="배너"><h2 class="sec-title">배너</h2><div class="card" data-search="banner 배너 노출 view 배너 클라이언트" data-cat="배너" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#ec4899">VIEW</span>
+    <span class="ev-name">Banner</span>
+  </div>
+  <div class="ev-desc">배너 노출</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>banner_type //enum// &quot;carousel banner&quot; &quot;popup&quot; &quot;Benefit&quot; &quot;strip&quot; // 배너 유형</pre></div>
+</div><div class="card" data-search="banner_click 배너 클릭 click 배너 클라이언트" data-cat="배너" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Banner_click</span>
+  </div>
+  <div class="ev-desc">배너 클릭</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- banner_id//string 또는 int // 배너 고유 ID
+
+- banner_title//string// 커버링 오피스 이벤트 // 사람이 읽기 좋은 타이틀
+
+- banner_type //enum// &quot;carousel banner&quot; &quot;popup&quot; &quot;Benefit&quot; &quot;strip&quot;// 배너 유형</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">나연</span>배너가 뜰 게 있다 없다 정도만 확인.
+뜰 게 하나라도 있으면 이벤트 보내면 되고, 예를 들어 팝업 배너가 0개라면 이벤트 안 보냄.</div></div></details>
+</div><div class="card" data-search="커버링 오피스 이벤트 커버링 오피스 이벤트 화면 route 배너 클라이언트" data-cat="배너" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">커버링 오피스 이벤트</span>
+  </div>
+  <div class="ev-desc">커버링 오피스 이벤트 화면</div>
+  
+</div><div class="card" data-search="짐싸x커버링 짐싸x커버링 화면 route 배너 클라이언트" data-cat="배너" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">짐싸X커버링</span>
+  </div>
+  <div class="ev-desc">짐싸X커버링 화면</div>
+  
+</div><div class="card" data-search="소문내고 간식 쿠폰 받기 소문내고 간식 쿠폰 받기 화면 route 배너 클라이언트" data-cat="배너" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">소문내고 간식 쿠폰 받기</span>
+  </div>
+  <div class="ev-desc">소문내고 간식 쿠폰 받기 화면</div>
+  
+</div></section><section id="sec_구독" class="cat-section" data-cat="구독"><h2 class="sec-title">구독</h2><div class="card" data-search="subscriptionscree 구독 페이지 진입 route 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#3b82f6">ROUTE</span>
+    <span class="ev-name">SubscriptionScree</span>
+  </div>
+  <div class="ev-desc">구독 페이지 진입</div>
+  
+</div><div class="card" data-search="subscriptionscreen_clicksubscribe 구독 페이지 내 구독하기 버튼 클릭 click 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SubscriptionScreen_clickSubscribe</span>
+  </div>
+  <div class="ev-desc">구독 페이지 내 구독하기 버튼 클릭</div>
+  
+</div><div class="card" data-search="subscriptionscreen_subscriptioninfo 구독내역 확인 모달 modal 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">SubscriptionScreen_SubscriptionInfo</span>
+  </div>
+  <div class="ev-desc">구독내역 확인 모달</div>
+  
+</div><div class="card" data-search="subscriptioninfomodal_subscribebutton 모달 내 구독하기 버튼 click 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SubscriptionInfoModal_SubscribeButton</span>
+  </div>
+  <div class="ev-desc">모달 내 구독하기 버튼</div>
+  
+</div><div class="card" data-search="subscriptioninfomodal_contactcsbutton 모달 내 고객센터 문의 click 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">SubscriptionInfoModal_ContactCSButton</span>
+  </div>
+  <div class="ev-desc">모달 내 고객센터 문의</div>
+  
+</div><div class="card" data-search="subscriptioncomplete 구독 완료 이벤트 event 구독 서버" data-cat="구독" data-owner="서버">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#f59e0b">서버</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">SubscriptionComplete</span>
+  </div>
+  <div class="ev-desc">구독 완료 이벤트</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>subscription_id // string //생성된 구독의 고유 ID, 구독 관련 모든 이벤트에서 연결 키로 사용됨
+
+subscription_plan_id // string // 구독 상품의 내부 ID. 어떤 플랜을 선택했는지 구분
+
+subscription_plan_name// string // Basic Monthly // 플랜 이름
+
+subscription_price // Int // 9900 // 구독 가격
+
+billing_cycle // Int // 30 // 구독 사이클 주기 
+
+started_at // timestamp // 2026-03-12T10:30:00 // 구독 시작일
+
+next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></div>
+</div><div class="card" data-search="subscriptionscreen_subscriptionresult 구독 성공 api를 앱에 내려줬을 때 event 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">SubscriptionScreen_subscriptionResult</span>
+  </div>
+  <div class="ev-desc">구독 성공 API를 앱에 내려줬을 때</div>
+  <div class="prop-block"><div class="prop-label">Properties</div><pre>- is_success // boolean // 성공 여부
+- error_message // string // 에러메세지가 무엇인지?</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>레거시 / 성공 이벤트를 볼거면 위의 서버이벤트 확인</div></div></details>
+</div><div class="card" data-search="subscription_addpayment 결제수단 등록 모달 modal 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#f97316">MODAL</span>
+    <span class="ev-name">Subscription_AddPayment</span>
+  </div>
+  <div class="ev-desc">결제수단 등록 모달</div>
+  
+</div><div class="card" data-search="subscription_addpaymentmethodmodal_register 모달 내 결제수단 등록하기 버튼 클릭 click 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Subscription_AddPaymentMethodModal_Register</span>
+  </div>
+  <div class="ev-desc">모달 내 결제수단 등록하기 버튼 클릭</div>
+  
+</div><div class="card" data-search="subscription_addpaymentmethodmodal_cancel 모달 내 돌아가기 버튼 클릭 click 구독 클라이언트" data-cat="구독" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#22c55e">CLICK</span>
+    <span class="ev-name">Subscription_AddPaymentMethodModal_Cancel</span>
+  </div>
+  <div class="ev-desc">모달 내 돌아가기 버튼 클릭</div>
+  
+</div></section><section id="sec_믹스패널_자체_이벤트" class="cat-section" data-cat="믹스패널_자체_이벤트"><h2 class="sec-title">믹스패널 자체 이벤트</h2><div class="card" data-search="믹스패널 자체 이벤트 ae crashed 화면 event 믹스패널 자체 이벤트 클라이언트" data-cat="믹스패널_자체_이벤트" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">믹스패널 자체 이벤트</span>
+  </div>
+  <div class="ev-desc">ae crashed 화면</div>
+  
+</div><div class="card" data-search="믹스패널 자체 이벤트 session start 화면 event 믹스패널 자체 이벤트 클라이언트" data-cat="믹스패널_자체_이벤트" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">믹스패널 자체 이벤트</span>
+  </div>
+  <div class="ev-desc">session start 화면</div>
+  
+</div><div class="card" data-search="믹스패널 자체 이벤트 session end 화면 event 믹스패널 자체 이벤트 클라이언트" data-cat="믹스패널_자체_이벤트" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">믹스패널 자체 이벤트</span>
+  </div>
+  <div class="ev-desc">session end 화면</div>
+  
+</div><div class="card" data-search="믹스패널 자체 이벤트 ae first open 화면 event 믹스패널 자체 이벤트 클라이언트" data-cat="믹스패널_자체_이벤트" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">믹스패널 자체 이벤트</span>
+  </div>
+  <div class="ev-desc">ae first open 화면</div>
+  
+</div><div class="card" data-search="믹스패널 자체 이벤트 ae session 화면 event 믹스패널 자체 이벤트 클라이언트" data-cat="믹스패널_자체_이벤트" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">믹스패널 자체 이벤트</span>
+  </div>
+  <div class="ev-desc">ae session 화면</div>
+  
+</div><div class="card" data-search="믹스패널 자체 이벤트 ae updated 화면 event 믹스패널 자체 이벤트 클라이언트" data-cat="믹스패널_자체_이벤트" data-owner="클라이언트">
+  <div class="card-top">
+    <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
+    <span class="type-badge" style="background:#a855f7">EVENT</span>
+    <span class="ev-name">믹스패널 자체 이벤트</span>
+  </div>
+  <div class="ev-desc">ae updated 화면</div>
+  
+</div></section></div>
+  <div id="funnel-view" class="hidden"><div class="funnel-container"><div class="funnel-step" data-cat="스플래쉬">
+  <div class="fstep-header">
+    <div class="fstep-title">스플래쉬</div>
+    <div class="fstep-count">1개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
+  <div class="fstep-events"><div class="fev">SplashScreen</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="온보딩">
+  <div class="fstep-header">
+    <div class="fstep-title">온보딩</div>
+    <div class="fstep-count">3개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 2</span></div>
+  <div class="fstep-events"><div class="fev">OnboardingScreen</div><div class="fev">Onboarding_ServiceRegionButton</div><div class="fev">Onboarding_LoginButton</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="로그인___회원가입">
+  <div class="fstep-header">
+    <div class="fstep-title">로그인 &amp; 회원가입</div>
+    <div class="fstep-count">6개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 2</span><span class="fpill" style="background:#22c55e">CLICK 4</span></div>
+  <div class="fstep-events"><div class="fev">AuthPhoneScreen</div><div class="fev">AuthPhone_RequestAuthCodeButton</div><div class="fev">AuthCodeScreen</div><div class="fev">AuthCode_ResendAuthCodeButton</div><div class="fev">AuthCode_NotReceivedCodeButton</div><div class="fev">AuthCode_CompleteButton</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="회원가입">
+  <div class="fstep-header">
+    <div class="fstep-title">회원가입</div>
+    <div class="fstep-count">33개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 10</span><span class="fpill" style="background:#22c55e">CLICK 18</span><span class="fpill" style="background:#f97316">MODAL 4</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
+  <div class="fstep-events"><div class="fev">SignUp_TermAgree</div><div class="fev">TermAgree_NextButton</div><div class="fev">SignUp_ReturnToOnboarding</div><div class="fev">SignUp_ReturnToOnboarding_goBackButton</div><div class="fev">SignUp_ReturnToOnboarding_continueButton</div><div class="fev">SignupIntroScreen</div><div class="fev">SignupNicknameScreen</div><div class="fev">SignupAddressScreen</div><div class="fev fev-more">+25개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="홈">
+  <div class="fstep-header">
+    <div class="fstep-title">홈</div>
+    <div class="fstep-count">9개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 3</span><span class="fpill" style="background:#ec4899">VIEW 3</span></div>
+  <div class="fstep-events"><div class="fev">MainTabScreen</div><div class="fev">MainTabScreen_Home</div><div class="fev">MainTabScreen_OrderList</div><div class="fev">MainTabScreen_MyPage</div><div class="fev">이용 방법</div><div class="fev">이용 방법_tabUsage</div><div class="fev">이용 방법_tabItem</div><div class="fev">이용 방법_tabPrice</div><div class="fev fev-more">+1개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="수거신청">
+  <div class="fstep-header">
+    <div class="fstep-title">수거신청</div>
+    <div class="fstep-count">10개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 5</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
+  <div class="fstep-events"><div class="fev">SelectOrderScreen</div><div class="fev">SelectOrderScreen_openItemUsageGuide</div><div class="fev">AddOrderScreen</div><div class="fev">SelectCoupon</div><div class="fev">AddOrderScreen_applyCoupon [CLICK] ApplyCoupon</div><div class="fev">AddOrderScreen_submitFinal</div><div class="fev">AddOrderComplete</div><div class="fev">AddOrderCompleteScreen</div><div class="fev fev-more">+2개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="신규유저_결제수단_등록_모달">
+  <div class="fstep-header">
+    <div class="fstep-title">신규유저 결제수단 등록 모달</div>
+    <div class="fstep-count">3개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#22c55e">CLICK 2</span><span class="fpill" style="background:#f97316">MODAL 1</span></div>
+  <div class="fstep-events"><div class="fev">AddPayment</div><div class="fev">AddPayment_submit</div><div class="fev">AddPayment_cancel</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="쿠폰관리">
+  <div class="fstep-header">
+    <div class="fstep-title">쿠폰관리</div>
+    <div class="fstep-count">5개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 1</span><span class="fpill" style="background:#a855f7">EVENT 3</span></div>
+  <div class="fstep-events"><div class="fev">CouponScreen</div><div class="fev">CouponScreen_couponCode</div><div class="fev">CouponIssued</div><div class="fev">CouponConsumed</div><div class="fev">CouponApplied</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="회원_탈퇴">
+  <div class="fstep-header">
+    <div class="fstep-title">회원 탈퇴</div>
+    <div class="fstep-count">7개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 2</span><span class="fpill" style="background:#22c55e">CLICK 4</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
+  <div class="fstep-events"><div class="fev">WithdrawalIntroScreen</div><div class="fev">WithdrawalIntroScreen_cancel</div><div class="fev">WithdrawalIntroScreen_next</div><div class="fev">WithdrawalReasonScreen</div><div class="fev">WithdrawalReasonScreen_cancel</div><div class="fev">WithdrawalReasonScreen_solution</div><div class="fev">WithdrawalComplete</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="앱_설정">
+  <div class="fstep-header">
+    <div class="fstep-title">앱 설정</div>
+    <div class="fstep-count">2개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 1</span></div>
+  <div class="fstep-events"><div class="fev">AppSettingScreen</div><div class="fev">AppNotification_agreement</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="결제수단_등록">
+  <div class="fstep-header">
+    <div class="fstep-title">결제수단 등록</div>
+    <div class="fstep-count">8개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 4</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
+  <div class="fstep-events"><div class="fev">PaymentScreen</div><div class="fev">PaymentScreen_edit</div><div class="fev">PaymentScreen_delete</div><div class="fev">PaymentDeleteModal_delete</div><div class="fev">PaymentScreen_addPayment</div><div class="fev">AddPaymentScreen</div><div class="fev">AddPaymentCompleteScreen</div><div class="fev">AddPaymentResult</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="서비스지역">
+  <div class="fstep-header">
+    <div class="fstep-title">서비스지역</div>
+    <div class="fstep-count">1개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
+  <div class="fstep-events"><div class="fev">서비스 지역</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="친구_초대">
+  <div class="fstep-header">
+    <div class="fstep-title">친구 초대</div>
+    <div class="fstep-count">4개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#ec4899">VIEW 3</span></div>
+  <div class="fstep-events"><div class="fev">InviteInfoScreen</div><div class="fev">InviteInfoScreen_InviteHowTo</div><div class="fev">InviteInfoScreen_EnterInviteCode</div><div class="fev">InviteInfoScreen_EnterInviteCode</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="공지사항">
+  <div class="fstep-header">
+    <div class="fstep-title">공지사항</div>
+    <div class="fstep-count">1개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
+  <div class="fstep-events"><div class="fev">공지사항</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="주소_관리">
+  <div class="fstep-header">
+    <div class="fstep-title">주소 관리</div>
+    <div class="fstep-count">8개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 4</span><span class="fpill" style="background:#22c55e">CLICK 2</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
+  <div class="fstep-events"><div class="fev">UserAddressListScreen</div><div class="fev">UserAddressListScreen_setDefault</div><div class="fev">UserAddressListScreen_delete</div><div class="fev">AddAddressScreen</div><div class="fev">SearchAddressScreen</div><div class="fev">AddAddressResult</div><div class="fev">EditAddressScreen</div><div class="fev">EditAddressResult</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="이용_내역">
+  <div class="fstep-header">
+    <div class="fstep-title">이용 내역</div>
+    <div class="fstep-count">10개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 4</span><span class="fpill" style="background:#22c55e">CLICK 2</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 2</span><span class="fpill" style="background:#ec4899">VIEW 1</span></div>
+  <div class="fstep-events"><div class="fev">OrderDetailScreen</div><div class="fev">OrderDetailScreen</div><div class="fev">OrderDetailScreen_snackbar</div><div class="fev">SelectCoupon</div><div class="fev">ApplyCoupon</div><div class="fev">UpdateOrderScreen</div><div class="fev">UpdateOrderSubmit</div><div class="fev">OrderCancel</div><div class="fev fev-more">+2개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="직접_결제_관련">
+  <div class="fstep-header">
+    <div class="fstep-title">직접 결제 관련</div>
+    <div class="fstep-count">5개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 2</span><span class="fpill" style="background:#22c55e">CLICK 1</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
+  <div class="fstep-events"><div class="fev">PaymentMethodSelect</div><div class="fev">PaymentMethodSelect_addPayment</div><div class="fev">PaymentCompletedScreen</div><div class="fev">OrderPaymentResult</div><div class="fev">KakaoPaymentScreen</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="홈__서비스_이용지역_외_">
+  <div class="fstep-header">
+    <div class="fstep-title">홈 (서비스 이용지역 외)</div>
+    <div class="fstep-count">2개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#22c55e">CLICK 2</span></div>
+  <div class="fstep-events"><div class="fev">Home_ServiceOpenOfferScreen</div><div class="fev">Home_ServiceShare</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="내_정보_설정">
+  <div class="fstep-header">
+    <div class="fstep-title">내 정보 설정</div>
+    <div class="fstep-count">5개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
+  <div class="fstep-events"><div class="fev">UserProfileScreen</div><div class="fev">UpdateNicknameScreen</div><div class="fev">UpdateNicknameResult // 제거</div><div class="fev">UpdatePhoneScreen</div><div class="fev">UpdatePhoneSResult</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="봉투_구매">
+  <div class="fstep-header">
+    <div class="fstep-title">봉투 구매</div>
+    <div class="fstep-count">11개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 5</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
+  <div class="fstep-events"><div class="fev">ProductScreen</div><div class="fev">ProductScreen_viewMoreProductInfo</div><div class="fev">ProductPurchaseScreen</div><div class="fev">ProductPurchaseScreen_editComment</div><div class="fev">ProductPurchaseScreen_editAccessInfo</div><div class="fev">ProductPurchaseScreen_loadUserInfo</div><div class="fev">BagQuantity</div><div class="fev">BagQuantity_submit</div><div class="fev fev-more">+3개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="리뷰_화면">
+  <div class="fstep-header">
+    <div class="fstep-title">리뷰 화면</div>
+    <div class="fstep-count">7개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 4</span></div>
+  <div class="fstep-events"><div class="fev">ReviewScreen</div><div class="fev">RequestStoreReviewScreen</div><div class="fev">RequestStoreReviewScreen_writeReview</div><div class="fev">RequestStoreReviewScreen_skip</div><div class="fev">RequestFeedbackScreen</div><div class="fev">RequestFeedbackScreen_writeFeedback</div><div class="fev">RequestFeedbackScreen_skip</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="의미없음">
+  <div class="fstep-header">
+    <div class="fstep-title">의미없음</div>
+    <div class="fstep-count">1개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
+  <div class="fstep-events"><div class="fev">null</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="이벤트화면">
+  <div class="fstep-header">
+    <div class="fstep-title">이벤트화면</div>
+    <div class="fstep-count">10개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 9</span><span class="fpill" style="background:#22c55e">CLICK 1</span></div>
+  <div class="fstep-events"><div class="fev">5% 쿠폰 지급</div><div class="fev">8kg 초과 배출</div><div class="fev">기본요금 0원</div><div class="fev">등급제 쿠폰</div><div class="fev">배송/교환/환불</div><div class="fev">AppUpdateScreen</div><div class="fev">AppUpdateScreen_goToStore</div><div class="fev">신규 지역 오픈</div><div class="fev fev-more">+2개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="배너">
+  <div class="fstep-header">
+    <div class="fstep-title">배너</div>
+    <div class="fstep-count">5개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 1</span><span class="fpill" style="background:#ec4899">VIEW 1</span></div>
+  <div class="fstep-events"><div class="fev">Banner</div><div class="fev">Banner_click</div><div class="fev">커버링 오피스 이벤트</div><div class="fev">짐싸X커버링</div><div class="fev">소문내고 간식 쿠폰 받기</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="구독">
+  <div class="fstep-header">
+    <div class="fstep-title">구독</div>
+    <div class="fstep-count">10개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 5</span><span class="fpill" style="background:#f97316">MODAL 2</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
+  <div class="fstep-events"><div class="fev">SubscriptionScree</div><div class="fev">SubscriptionScreen_clickSubscribe</div><div class="fev">SubscriptionScreen_SubscriptionInfo</div><div class="fev">SubscriptionInfoModal_SubscribeButton</div><div class="fev">SubscriptionInfoModal_ContactCSButton</div><div class="fev">SubscriptionComplete</div><div class="fev">SubscriptionScreen_subscriptionResult</div><div class="fev">Subscription_AddPayment</div><div class="fev fev-more">+2개 더</div></div>
+</div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="믹스패널_자체_이벤트">
+  <div class="fstep-header">
+    <div class="fstep-title">믹스패널 자체 이벤트</div>
+    <div class="fstep-count">6개</div>
+  </div>
+  <div class="fstep-types"><span class="fpill" style="background:#a855f7">EVENT 6</span></div>
+  <div class="fstep-events"><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div></div>
+</div></div></div>
+</main>
+<script>
+const cards=document.querySelectorAll('.card');
+const sections=document.querySelectorAll('.cat-section');
+const catItems=document.querySelectorAll('.cat-item');
+let activeCat='all';
+
+function show(cat){
+  activeCat=cat;
+  catItems.forEach(i=>i.classList.toggle('active',i.dataset.cat===cat));
+  const q=document.getElementById('search').value.toLowerCase();
+  sections.forEach(s=>{
+    if(cat!=='all'&&s.dataset.cat!==cat){s.classList.add('hidden');return;}
+    s.classList.remove('hidden');
+    let any=false;
+    s.querySelectorAll('.card').forEach(c=>{
+      const ownerOk=activeOwner==='all'||c.dataset.owner===activeOwner.toLowerCase();
+      const ok=ownerOk&&(!q||c.dataset.search.includes(q));
+      c.classList.toggle('hidden',!ok);
+      if(ok)any=true;
+    });
+    s.classList.toggle('hidden',!any);
+  });
+}
+
+catItems.forEach(i=>i.addEventListener('click',()=>{
+  show(i.dataset.cat);
+  document.getElementById('main').scrollTop=0;
+  if(i.dataset.cat!=='all'){
+    const sec=document.getElementById('sec_'+i.dataset.cat);
+    if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  }
+}));
+
+document.getElementById('search').addEventListener('input',()=>show(activeCat));
+
+// Owner filter
+let activeOwner='all';
+document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  activeOwner=b.dataset.owner;
+  show(activeCat);
+}));
+
+// View toggle
+document.querySelectorAll('.view-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.view-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const v=b.dataset.view;
+  document.getElementById('list-view').classList.toggle('hidden',v!=='list');
+  document.getElementById('funnel-view').classList.toggle('hidden',v!=='funnel');
+}));
+
+// Funnel step click → switch to list view for that category
+document.querySelectorAll('.funnel-step').forEach(s=>s.addEventListener('click',()=>{
+  const cat=s.dataset.cat;
+  document.querySelectorAll('.view-btn').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.view-btn[data-view="list"]').classList.add('active');
+  document.getElementById('list-view').classList.remove('hidden');
+  document.getElementById('funnel-view').classList.add('hidden');
+  show(cat);
+  const sec=document.getElementById('sec_'+cat);
+  if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}));
+</script>
+</body>
+</html>
