@@ -1,0 +1,44 @@
+name: Deploy Event Dictionary
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 매일 오전 10시 KST (01:00 UTC)
+  workflow_dispatch:      # 수동 실행 가능
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create service account key
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > /tmp/service-account.json
+
+      - name: Generate HTML
+        run: |
+          python3 generate_event_dict.py
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/service-account.json
+          OUTPUT_HTML: index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          include_files: index.html

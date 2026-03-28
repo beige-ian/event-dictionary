@@ -308,8 +308,9 @@ if __name__ == "__main__":
         events = parse_data(data)
         print(f"이벤트 {len(events)}개 파싱 완료")
         html = generate_html(events)
-        with open('/tmp/event-dictionary.html', 'w', encoding='utf-8') as f:
+        output_path = os.environ.get('OUTPUT_HTML', '/tmp/event-dictionary.html')
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html)
-        print("완료: /tmp/event-dictionary.html")
+        print(f"완료: {output_path}")
     else:
         print("데이터 읽기 실패")
