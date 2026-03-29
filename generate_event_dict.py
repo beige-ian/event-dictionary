@@ -350,8 +350,12 @@ document.querySelectorAll('.funnel-step').forEach(s=>s.addEventListener('click',
 
 if __name__ == "__main__":
     print("시트 데이터 읽는 중...")
+    service_account_path = os.environ.get(
+        'GOOGLE_APPLICATION_CREDENTIALS',
+        os.path.expanduser('~/.config/gcloud/sheets-service-account.json')
+    )
     data = get_sheet_data(
-        os.path.expanduser('~/.config/gcloud/sheets-service-account.json'),
+        service_account_path,
         '1-v4gyRD9yzzNDqy5NwjDj02uJQZItM-R8EGE88-1diQ',
         1531837284
     )
