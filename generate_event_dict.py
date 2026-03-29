@@ -4,6 +4,8 @@ import collections
 from html import escape
 import os
 
+CREDENTIAL_HASH = '2015b5e7b2d5a2966120f714a8e58d2e2e2c9194dacbc99364e060621e9fb5b9'
+
 def get_sheet_data(service_account_path, sheet_id, gid):
     try:
         from google.oauth2.service_account import Credentials
@@ -152,7 +154,7 @@ def generate_html(events):
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 html{{scroll-behavior:smooth}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f0f13;color:#d4d4d8;display:flex;height:100vh;overflow:hidden}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f0f13;color:#d4d4d8;height:100vh;overflow:hidden}}
 .sidebar{{width:260px;flex-shrink:0;background:#141418;border-right:1px solid #2a2a2f;display:flex;flex-direction:column;overflow:hidden}}
 .sidebar-header{{padding:16px;border-bottom:1px solid #2a2a2f}}
 .sidebar-header h1{{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}}
@@ -202,12 +204,32 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .fev-more{{color:#6366f1;font-style:italic}}
 .funnel-arrow{{color:#4b5563;font-size:24px;display:flex;align-items:center;padding:0 2px;flex-shrink:0}}
 .hidden{{display:none!important}}
+.login-overlay{{position:fixed;inset:0;z-index:9999;background:#0f0f13;display:flex;align-items:center;justify-content:center}}
+.login-box{{background:#1a1a1f;border:1px solid #2a2a2f;border-radius:12px;padding:40px;width:360px;max-width:90vw}}
+.login-box h2{{font-size:18px;font-weight:700;color:#fff;margin-bottom:24px;text-align:center}}
+.login-input{{width:100%;padding:10px 12px;background:#0f0f13;border:1px solid #333;border-radius:6px;color:#d4d4d8;font-size:14px;outline:none;margin-bottom:12px;display:block}}
+.login-input:focus{{border-color:#3b82f6}}
+.login-btn{{width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}}
+.login-btn:hover{{background:#1d4ed8}}
+.login-error{{color:#ef4444;font-size:12px;text-align:center;margin-top:10px;min-height:18px}}
+.app-wrap{{display:flex;height:100vh;overflow:hidden;width:100%}}
+.app-wrap.locked{{display:none}}
 ::-webkit-scrollbar{{width:5px}}
 ::-webkit-scrollbar-track{{background:#0f0f13}}
 ::-webkit-scrollbar-thumb{{background:#333;border-radius:3px}}
 </style>
 </head>
 <body>
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <h2>이벤트 딕셔너리</h2>
+    <input id="login-id" class="login-input" type="text" placeholder="ID" autocomplete="off">
+    <input id="login-pw" class="login-input" type="password" placeholder="Password" autocomplete="off">
+    <button id="login-btn" class="login-btn">로그인</button>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</div>
+<div id="app" class="app-wrap locked">
 <nav class="sidebar">
   <div class="sidebar-header">
     <h1>이벤트 딕셔너리</h1>
@@ -228,7 +250,37 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   <div id="list-view">{sections_html}</div>
   <div id="funnel-view" class="hidden">{funnel_html}</div>
 </main>
+</div>
 <script>
+const HASH='{CREDENTIAL_HASH}';
+async function sha256(msg){{
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}}
+function unlock(){{
+  document.getElementById('login-overlay').style.display='none';
+  document.getElementById('app').classList.remove('locked');
+  sessionStorage.setItem('ed_auth','1');
+}}
+if(sessionStorage.getItem('ed_auth')==='1'){{
+  unlock();
+}}else{{
+  document.getElementById('login-id').focus();
+}}
+async function tryLogin(){{
+  const id=document.getElementById('login-id').value;
+  const pw=document.getElementById('login-pw').value;
+  const[idHash,pwHash]=await Promise.all([sha256(id),sha256(pw)]);
+  if(idHash===HASH&&pwHash===HASH){{
+    unlock();
+  }}else{{
+    document.getElementById('login-error').textContent='ID 또는 비밀번호가 올바르지 않습니다.';
+  }}
+}}
+document.getElementById('login-btn').addEventListener('click',tryLogin);
+document.querySelectorAll('.login-input').forEach(el=>el.addEventListener('keydown',e=>{{
+  if(e.key==='Enter')tryLogin();
+}}));
 const cards=document.querySelectorAll('.card');
 const sections=document.querySelectorAll('.cat-section');
 const catItems=document.querySelectorAll('.cat-item');
