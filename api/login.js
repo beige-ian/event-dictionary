@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+const crypto = require('crypto');
 
 function generateToken() {
   const timestamp = Date.now().toString();
@@ -7,7 +7,7 @@ function generateToken() {
   return `${timestamp}.${hmac}`;
 }
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
@@ -34,4 +34,4 @@ export default function handler(req, res) {
   }
 
   return res.status(401).json({ ok: false, error: 'ID 또는 비밀번호가 올바르지 않습니다.' });
-}
+};

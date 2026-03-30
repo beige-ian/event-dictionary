@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+const crypto = require('crypto');
 
 function verifyToken(token) {
   if (!token || typeof token !== 'string') return false;
@@ -25,7 +25,7 @@ function verifyToken(token) {
   }
 }
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
@@ -41,4 +41,4 @@ export default function handler(req, res) {
   }
 
   return res.status(401).json({ ok: false });
-}
+};
