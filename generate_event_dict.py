@@ -21,6 +21,31 @@ def get_sheet_data(service_account_path, sheet_id, gid):
         print(f"Error reading Google Sheet: {e}")
         return None
 
+def get_bq_counts(project='covering-app-ccd23'):
+    try:
+        from google.cloud import bigquery
+        bq_creds_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_BQ', '')
+        if bq_creds_path and os.path.exists(bq_creds_path):
+            from google.oauth2.service_account import Credentials
+            creds = Credentials.from_service_account_file(bq_creds_path)
+            client = bigquery.Client(project=project, credentials=creds)
+        else:
+            client = bigquery.Client(project=project)
+        query = """
+            SELECT event_name, COUNT(*) AS cnt
+            FROM `covering-app-ccd23.mixpanel.mp_master_event`
+            WHERE DATE(time, 'Asia/Seoul') >= DATE_SUB(CURRENT_DATE('Asia/Seoul'), INTERVAL 7 DAY)
+              AND NOT STARTS_WITH(event_name, '$')
+              AND NOT STARTS_WITH(event_name, '[Airbridge]')
+            GROUP BY event_name
+        """
+        results = client.query(query).result()
+        return {row.event_name: row.cnt for row in results}
+    except Exception as e:
+        print(f"BQ 조회 실패 (건너뜀): {e}")
+        return {}
+
+
 def parse_data(raw_data):
     if not raw_data:
         return []
@@ -65,7 +90,7 @@ def parse_data(raw_data):
             })
     return events
 
-def generate_html(events):
+def generate_html(events, bq_counts=None, unregistered=None):
     events_by_category = collections.OrderedDict()
     for event in events:
         cat = event['category']
@@ -80,10 +105,13 @@ def generate_html(events):
 
     owner_colors = {'클라이언트': '#0ea5e9', '서버': '#f59e0b'}
 
-    sidebar_items = f'<li class="cat-item active" data-cat="all"><span class="cat-name">전체보기</span><span class="cat-count">{len(events)}</span></li>'
+    total_count = len(events) + (len(unregistered) if unregistered else 0)
+    sidebar_items = f'<li class="cat-item active" data-cat="all"><span class="cat-name">전체보기</span><span class="cat-count">{total_count}</span></li>'
     for cat, evs in events_by_category.items():
         cid = re.sub(r'[^\w]', '_', cat)
         sidebar_items += f'<li class="cat-item" data-cat="{cid}"><span class="cat-name">{escape(cat)}</span><span class="cat-count">{len(evs)}</span></li>'
+    if unregistered:
+        sidebar_items += f'<li class="cat-item" data-cat="bq_unreg"><span class="cat-name" style="color:#f59e0b">미등록 (BQ only)</span><span class="cat-count">{len(unregistered)}</span></li>'
 
     sections_html = ''
     for cat, evs in events_by_category.items():
@@ -101,18 +129,37 @@ def generate_html(events):
                 cmt_html = f'<details class="cmt-wrap"><summary>코멘트 {len(ev["comments"])}개</summary><div class="cmt-list">{items}</div></details>'
             search = escape(f"{ev['name']} {ev['description']} {ev['type']} {cat} {ev['owner']}".lower())
             owner_val = escape(ev['owner'].lower()) if ev['owner'] else ''
+            cnt = (bq_counts or {}).get(ev['name'], 0)
+            count_badge = f'<span class="count-badge">{cnt:,}회/7d</span>' if cnt > 0 else ''
             cards_html += f'''<div class="card" data-search="{search}" data-cat="{cid}" data-owner="{owner_val}">
   <div class="card-top">
     <span class="owner-badge" style="background:{oc}">{escape(ev["owner"])}</span>
     <span class="type-badge" style="background:{color}">{escape(ev["type"])}</span>
     <span class="ev-name">{escape(ev["name"])}</span>
+    {count_badge}
   </div>
   {f'<div class="ev-desc">{escape(ev["description"])}</div>' if ev["description"] else ''}
   {prop_html}{cmt_html}
 </div>'''
         sections_html += f'<section id="sec_{cid}" class="cat-section" data-cat="{cid}"><h2 class="sec-title">{escape(cat)}</h2>{cards_html}</section>'
 
-    # 퍼널 뷰 생성
+    # 미등록 이벤트 섹션 (BQ에는 있지만 시트에 없는 이벤트)
+    if unregistered:
+        unreg_cards = ''
+        for name in sorted(unregistered):
+            cnt = (bq_counts or {}).get(name, 0)
+            count_badge = f'<span class="count-badge">{cnt:,}회/7d</span>' if cnt > 0 else ''
+            unreg_cards += f'''<div class="card" data-search="{escape(name.lower())}" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">{escape(name)}</span>
+    {count_badge}
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div>'''
+        sections_html += f'<section id="sec_bq_unreg" class="cat-section" data-cat="bq_unreg"><h2 class="sec-title" style="color:#f59e0b">미등록 이벤트 (BQ only) {len(unregistered)}개</h2>{unreg_cards}</section>'
+
+    # 퍼널 뷰 생성 (각 이벤트에 data-owner/data-type 추가 → JS 필터링용)
     funnel_html = '<div class="funnel-container">'
     for idx, (cat, evs) in enumerate(events_by_category.items()):
         cid = re.sub(r'[^\w]', '_', cat)
@@ -130,8 +177,14 @@ def generate_html(events):
         if event_type_count: type_pills += f'<span class="fpill" style="background:#a855f7">EVENT {event_type_count}</span>'
         if view_count: type_pills += f'<span class="fpill" style="background:#ec4899">VIEW {view_count}</span>'
 
-        ev_names = ''.join(f'<div class="fev">{escape(e["name"])}</div>' for e in evs[:8])
-        more = f'<div class="fev fev-more">+{event_count - 8}개 더</div>' if event_count > 8 else ''
+        # 모든 이벤트에 data-owner/data-type 부여, 8개 초과분은 초기에 숨김
+        ev_items = ''
+        for i, e in enumerate(evs):
+            owner_val = escape(e['owner'].lower()) if e['owner'] else ''
+            hidden = ' style="display:none"' if i >= 8 else ''
+            ev_items += f'<div class="fev" data-owner="{owner_val}" data-type="{escape(e["type"])}"{hidden}>{escape(e["name"])}</div>'
+        more_count = max(0, event_count - 8)
+        more_html = f'<div class="fev fev-more">{f"+{more_count}개 더" if more_count > 0 else ""}</div>'
 
         arrow = '<div class="funnel-arrow">→</div>' if idx < len(events_by_category) - 1 else ''
 
@@ -141,7 +194,7 @@ def generate_html(events):
     <div class="fstep-count">{event_count}개</div>
   </div>
   <div class="fstep-types">{type_pills}</div>
-  <div class="fstep-events">{ev_names}{more}</div>
+  <div class="fstep-events">{ev_items}{more_html}</div>
 </div>{arrow}'''
     funnel_html += '</div>'
 
@@ -181,6 +234,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .prop-block{{margin-bottom:10px}}
 .prop-label{{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}}
 .prop-block pre{{background:#0f0f13;border:1px solid #2a2a2f;border-radius:5px;padding:10px;font-size:12px;color:#a3e635;white-space:pre-wrap;word-break:break-all;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.5}}
+.count-badge{{font-size:10px;font-weight:600;color:#fff;background:#374151;padding:1px 6px;border-radius:10px;white-space:nowrap}}
 .cmt-wrap summary{{font-size:12px;color:#6366f1;cursor:pointer;padding:2px 0}}
 .cmt-list{{margin-top:8px;padding-left:12px;border-left:2px solid #2a2a2f}}
 .cmt-item{{font-size:12px;color:#9ca3af;padding:4px 0;line-height:1.5}}
@@ -317,11 +371,34 @@ document.getElementById('search').addEventListener('input',()=>show(activeCat));
 
 // Owner filter
 let activeOwner='all';
+const TYPE_COLORS={{ROUTE:'#3b82f6',CLICK:'#22c55e',MODAL:'#f97316',EVENT:'#a855f7',VIEW:'#ec4899'}};
+function updateFunnel(owner){{
+  document.querySelectorAll('.funnel-step').forEach(step=>{{
+    const evEls=[...step.querySelectorAll('.fev:not(.fev-more)')];
+    const filtered=owner==='all'?evEls:evEls.filter(el=>el.dataset.owner===owner.toLowerCase());
+    if(filtered.length===0){{step.classList.add('hidden');return;}}
+    step.classList.remove('hidden');
+    evEls.forEach(el=>{{el.style.display='none';}});
+    filtered.slice(0,8).forEach(el=>{{el.style.display='';}});
+    const more=step.querySelector('.fev-more');
+    const moreCount=Math.max(0,filtered.length-8);
+    if(more){{more.textContent=moreCount>0?`+${{moreCount}}개 더`:'';}};
+    const countEl=step.querySelector('.fstep-count');
+    if(countEl)countEl.textContent=`${{filtered.length}}개`;
+    const typesEl=step.querySelector('.fstep-types');
+    if(typesEl){{
+      const counts={{}};
+      filtered.forEach(el=>{{const t=el.dataset.type;counts[t]=(counts[t]||0)+1;}});
+      typesEl.innerHTML=Object.entries(TYPE_COLORS).filter(([t])=>counts[t]).map(([t,c])=>`<span class="fpill" style="background:${{c}}">${{t}} ${{counts[t]}}</span>`).join('');
+    }}
+  }});
+}}
 document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{{
   document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   activeOwner=b.dataset.owner;
   show(activeCat);
+  updateFunnel(activeOwner);
 }}));
 
 // View toggle
@@ -363,7 +440,31 @@ if __name__ == "__main__":
         print("파싱 중...")
         events = parse_data(data)
         print(f"이벤트 {len(events)}개 파싱 완료")
-        html = generate_html(events)
+
+        print("BQ 발화 수 조회 중...")
+        bq_counts = get_bq_counts()
+        if bq_counts:
+            print(f"BQ 이벤트 {len(bq_counts)}개 조회 완료")
+        # BQ: "[CLICK] ButtonName" → 시트: "ButtonName" (prefix 제거됨)
+        sheet_names = {e['name'] for e in events}
+        def strip_type_prefix(name):
+            m = re.match(r'\[\w+\]\s*(.*)', name)
+            return m.group(1).strip() if m else name
+        # BQ 카운트를 시트 이름 기준으로 매핑
+        bq_counts_mapped = {}
+        for bq_name, cnt in bq_counts.items():
+            stripped = strip_type_prefix(bq_name)
+            bq_counts_mapped[stripped] = bq_counts_mapped.get(stripped, 0) + cnt
+        unregistered = sorted(
+            name for name in bq_counts
+            if strip_type_prefix(name) not in sheet_names
+            and not name.startswith('[PATH]')
+        ) if bq_counts else []
+        bq_counts = bq_counts_mapped
+        if unregistered:
+            print(f"미등록 이벤트 {len(unregistered)}개 발견")
+
+        html = generate_html(events, bq_counts=bq_counts or None, unregistered=unregistered or None)
         output_path = os.environ.get('OUTPUT_HTML', '/tmp/event-dictionary.html')
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html)
