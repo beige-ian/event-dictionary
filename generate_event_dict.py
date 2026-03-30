@@ -4,8 +4,6 @@ import collections
 from html import escape
 import os
 
-CREDENTIAL_HASH = '2015b5e7b2d5a2966120f714a8e58d2e2e2c9194dacbc99364e060621e9fb5b9'
-
 def get_sheet_data(service_account_path, sheet_id, gid):
     try:
         from google.oauth2.service_account import Credentials
@@ -306,29 +304,41 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 </main>
 </div>
 <script>
-const HASH='{CREDENTIAL_HASH}';
-async function sha256(msg){{
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}}
 function unlock(){{
   document.getElementById('login-overlay').style.display='none';
   document.getElementById('app').classList.remove('locked');
-  sessionStorage.setItem('ed_auth','1');
 }}
-if(sessionStorage.getItem('ed_auth')==='1'){{
-  unlock();
-}}else{{
+async function checkSession(){{
+  const token=sessionStorage.getItem('ed_auth');
+  if(!token){{document.getElementById('login-id').focus();return;}}
+  try{{
+    const r=await fetch('/api/verify',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{token}})}});
+    const d=await r.json();
+    if(r.ok&&d.ok){{unlock();return;}}
+  }}catch(e){{}}
+  sessionStorage.removeItem('ed_auth');
   document.getElementById('login-id').focus();
 }}
+checkSession();
 async function tryLogin(){{
   const id=document.getElementById('login-id').value;
   const pw=document.getElementById('login-pw').value;
-  const[idHash,pwHash]=await Promise.all([sha256(id),sha256(pw)]);
-  if(idHash===HASH&&pwHash===HASH){{
-    unlock();
-  }}else{{
-    document.getElementById('login-error').textContent='ID 또는 비밀번호가 올바르지 않습니다.';
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;
+  document.getElementById('login-error').textContent='';
+  try{{
+    const r=await fetch('/api/login',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{id,password:pw}})}});
+    const d=await r.json();
+    if(r.ok&&d.ok){{
+      sessionStorage.setItem('ed_auth',d.token);
+      unlock();
+    }}else{{
+      document.getElementById('login-error').textContent=d.error||'ID 또는 비밀번호가 올바르지 않습니다.';
+    }}
+  }}catch(e){{
+    document.getElementById('login-error').textContent='서버 연결 오류가 발생했습니다.';
+  }}finally{{
+    btn.disabled=false;
   }}
 }}
 document.getElementById('login-btn').addEventListener('click',tryLogin);

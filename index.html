@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f0f13;color:#d4d4d8;display:flex;height:100vh;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f0f13;color:#d4d4d8;height:100vh;overflow:hidden}
 .sidebar{width:260px;flex-shrink:0;background:#141418;border-right:1px solid #2a2a2f;display:flex;flex-direction:column;overflow:hidden}
 .sidebar-header{padding:16px;border-bottom:1px solid #2a2a2f}
 .sidebar-header h1{font-size:15px;font-weight:700;color:#fff;margin-bottom:10px}
@@ -34,6 +34,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .prop-block{margin-bottom:10px}
 .prop-label{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .prop-block pre{background:#0f0f13;border:1px solid #2a2a2f;border-radius:5px;padding:10px;font-size:12px;color:#a3e635;white-space:pre-wrap;word-break:break-all;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.5}
+.count-badge{font-size:10px;font-weight:600;color:#fff;background:#374151;padding:1px 6px;border-radius:10px;white-space:nowrap}
 .cmt-wrap summary{font-size:12px;color:#6366f1;cursor:pointer;padding:2px 0}
 .cmt-list{margin-top:8px;padding-left:12px;border-left:2px solid #2a2a2f}
 .cmt-item{font-size:12px;color:#9ca3af;padding:4px 0;line-height:1.5}
@@ -57,12 +58,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .fev-more{color:#6366f1;font-style:italic}
 .funnel-arrow{color:#4b5563;font-size:24px;display:flex;align-items:center;padding:0 2px;flex-shrink:0}
 .hidden{display:none!important}
+.login-overlay{position:fixed;inset:0;z-index:9999;background:#0f0f13;display:flex;align-items:center;justify-content:center}
+.login-box{background:#1a1a1f;border:1px solid #2a2a2f;border-radius:12px;padding:40px;width:360px;max-width:90vw}
+.login-box h2{font-size:18px;font-weight:700;color:#fff;margin-bottom:24px;text-align:center}
+.login-input{width:100%;padding:10px 12px;background:#0f0f13;border:1px solid #333;border-radius:6px;color:#d4d4d8;font-size:14px;outline:none;margin-bottom:12px;display:block}
+.login-input:focus{border-color:#3b82f6}
+.login-btn{width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+.login-btn:hover{background:#1d4ed8}
+.login-error{color:#ef4444;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+.app-wrap{display:flex;height:100vh;overflow:hidden;width:100%}
+.app-wrap.locked{display:none}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:#0f0f13}
 ::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
 </style>
 </head>
 <body>
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <h2>이벤트 딕셔너리</h2>
+    <input id="login-id" class="login-input" type="text" placeholder="ID" autocomplete="off">
+    <input id="login-pw" class="login-input" type="password" placeholder="Password" autocomplete="off">
+    <button id="login-btn" class="login-btn">로그인</button>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</div>
+<div id="app" class="app-wrap locked">
 <nav class="sidebar">
   <div class="sidebar-header">
     <h1>이벤트 딕셔너리</h1>
@@ -77,7 +98,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
       <button class="view-btn" data-view="funnel">퍼널</button>
     </div>
   </div>
-  <ul class="cat-list"><li class="cat-item active" data-cat="all"><span class="cat-name">전체보기</span><span class="cat-count">173</span></li><li class="cat-item" data-cat="스플래쉬"><span class="cat-name">스플래쉬</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="온보딩"><span class="cat-name">온보딩</span><span class="cat-count">3</span></li><li class="cat-item" data-cat="로그인___회원가입"><span class="cat-name">로그인 &amp; 회원가입</span><span class="cat-count">6</span></li><li class="cat-item" data-cat="회원가입"><span class="cat-name">회원가입</span><span class="cat-count">33</span></li><li class="cat-item" data-cat="홈"><span class="cat-name">홈</span><span class="cat-count">9</span></li><li class="cat-item" data-cat="수거신청"><span class="cat-name">수거신청</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="신규유저_결제수단_등록_모달"><span class="cat-name">신규유저 결제수단 등록 모달</span><span class="cat-count">3</span></li><li class="cat-item" data-cat="쿠폰관리"><span class="cat-name">쿠폰관리</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="회원_탈퇴"><span class="cat-name">회원 탈퇴</span><span class="cat-count">7</span></li><li class="cat-item" data-cat="앱_설정"><span class="cat-name">앱 설정</span><span class="cat-count">2</span></li><li class="cat-item" data-cat="결제수단_등록"><span class="cat-name">결제수단 등록</span><span class="cat-count">8</span></li><li class="cat-item" data-cat="서비스지역"><span class="cat-name">서비스지역</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="친구_초대"><span class="cat-name">친구 초대</span><span class="cat-count">4</span></li><li class="cat-item" data-cat="공지사항"><span class="cat-name">공지사항</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="주소_관리"><span class="cat-name">주소 관리</span><span class="cat-count">8</span></li><li class="cat-item" data-cat="이용_내역"><span class="cat-name">이용 내역</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="직접_결제_관련"><span class="cat-name">직접 결제 관련</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="홈__서비스_이용지역_외_"><span class="cat-name">홈 (서비스 이용지역 외)</span><span class="cat-count">2</span></li><li class="cat-item" data-cat="내_정보_설정"><span class="cat-name">내 정보 설정</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="봉투_구매"><span class="cat-name">봉투 구매</span><span class="cat-count">11</span></li><li class="cat-item" data-cat="리뷰_화면"><span class="cat-name">리뷰 화면</span><span class="cat-count">7</span></li><li class="cat-item" data-cat="의미없음"><span class="cat-name">의미없음</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="이벤트화면"><span class="cat-name">이벤트화면</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="배너"><span class="cat-name">배너</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="구독"><span class="cat-name">구독</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="믹스패널_자체_이벤트"><span class="cat-name">믹스패널 자체 이벤트</span><span class="cat-count">6</span></li></ul>
+  <ul class="cat-list"><li class="cat-item active" data-cat="all"><span class="cat-name">전체보기</span><span class="cat-count">198</span></li><li class="cat-item" data-cat="스플래쉬"><span class="cat-name">스플래쉬</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="온보딩"><span class="cat-name">온보딩</span><span class="cat-count">3</span></li><li class="cat-item" data-cat="로그인___회원가입"><span class="cat-name">로그인 &amp; 회원가입</span><span class="cat-count">6</span></li><li class="cat-item" data-cat="회원가입"><span class="cat-name">회원가입</span><span class="cat-count">33</span></li><li class="cat-item" data-cat="홈"><span class="cat-name">홈</span><span class="cat-count">9</span></li><li class="cat-item" data-cat="수거신청"><span class="cat-name">수거신청</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="신규유저_결제수단_등록_모달"><span class="cat-name">신규유저 결제수단 등록 모달</span><span class="cat-count">3</span></li><li class="cat-item" data-cat="쿠폰관리"><span class="cat-name">쿠폰관리</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="회원_탈퇴"><span class="cat-name">회원 탈퇴</span><span class="cat-count">7</span></li><li class="cat-item" data-cat="앱_설정"><span class="cat-name">앱 설정</span><span class="cat-count">2</span></li><li class="cat-item" data-cat="결제수단_등록"><span class="cat-name">결제수단 등록</span><span class="cat-count">8</span></li><li class="cat-item" data-cat="서비스지역"><span class="cat-name">서비스지역</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="친구_초대"><span class="cat-name">친구 초대</span><span class="cat-count">4</span></li><li class="cat-item" data-cat="공지사항"><span class="cat-name">공지사항</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="주소_관리"><span class="cat-name">주소 관리</span><span class="cat-count">8</span></li><li class="cat-item" data-cat="이용_내역"><span class="cat-name">이용 내역</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="직접_결제_관련"><span class="cat-name">직접 결제 관련</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="홈__서비스_이용지역_외_"><span class="cat-name">홈 (서비스 이용지역 외)</span><span class="cat-count">2</span></li><li class="cat-item" data-cat="내_정보_설정"><span class="cat-name">내 정보 설정</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="봉투_구매"><span class="cat-name">봉투 구매</span><span class="cat-count">11</span></li><li class="cat-item" data-cat="리뷰_화면"><span class="cat-name">리뷰 화면</span><span class="cat-count">7</span></li><li class="cat-item" data-cat="의미없음"><span class="cat-name">의미없음</span><span class="cat-count">1</span></li><li class="cat-item" data-cat="이벤트화면"><span class="cat-name">이벤트화면</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="배너"><span class="cat-name">배너</span><span class="cat-count">5</span></li><li class="cat-item" data-cat="구독"><span class="cat-name">구독</span><span class="cat-count">10</span></li><li class="cat-item" data-cat="믹스패널_자체_이벤트"><span class="cat-name">믹스패널 자체 이벤트</span><span class="cat-count">6</span></li><li class="cat-item" data-cat="bq_unreg"><span class="cat-name" style="color:#f59e0b">미등록 (BQ only)</span><span class="cat-count">25</span></li></ul>
 </nav>
 <main class="main" id="main">
   <div id="list-view"><section id="sec_스플래쉬" class="cat-section" data-cat="스플래쉬"><h2 class="sec-title">스플래쉬</h2><div class="card" data-search="splashscreen 앱 실행 시마다 맨 처음 표시되는 화면 route 스플래쉬 클라이언트" data-cat="스플래쉬" data-owner="클라이언트">
@@ -85,6 +106,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SplashScreen</span>
+    <span class="count-badge">131,769회/7d</span>
   </div>
   <div class="ev-desc">앱 실행 시마다 맨 처음 표시되는 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -93,6 +115,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">OnboardingScreen</span>
+    <span class="count-badge">25,877회/7d</span>
   </div>
   <div class="ev-desc">온보딩 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -101,6 +124,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Onboarding_ServiceRegionButton</span>
+    <span class="count-badge">3,777회/7d</span>
   </div>
   <div class="ev-desc">온보딩 화면 내 서비스 지역 버튼</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -109,6 +133,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Onboarding_LoginButton</span>
+    <span class="count-badge">20,400회/7d</span>
   </div>
   <div class="ev-desc">온보딩 화면 내 로그인/회원가입 버튼</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -117,6 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthPhoneScreen</span>
+    <span class="count-badge">20,401회/7d</span>
   </div>
   <div class="ev-desc">휴대폰 인증 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -125,6 +151,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthPhone_RequestAuthCodeButton</span>
+    <span class="count-badge">19,963회/7d</span>
   </div>
   <div class="ev-desc">인증번호 보내기</div>
   
@@ -133,6 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthCodeScreen</span>
+    <span class="count-badge">19,208회/7d</span>
   </div>
   <div class="ev-desc">인증번호 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>에러코드는 없으므로, 현재 제외함.
@@ -142,6 +170,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthCode_ResendAuthCodeButton</span>
+    <span class="count-badge">1,032회/7d</span>
   </div>
   <div class="ev-desc">인증번호 다시 보내기 버튼</div>
   
@@ -150,6 +179,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthCode_NotReceivedCodeButton</span>
+    <span class="count-badge">494회/7d</span>
   </div>
   <div class="ev-desc">인증번호가 오지 않아요</div>
   
@@ -158,6 +188,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthCode_CompleteButton</span>
+    
   </div>
   <div class="ev-desc">완료 버튼 클릭</div>
   
@@ -166,6 +197,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">SignUp_TermAgree</span>
+    <span class="count-badge">11,633회/7d</span>
   </div>
   <div class="ev-desc">회원가입시이용약관 동의 모달 보기</div>
   <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (해당 시점에서 보내야하는 property로 서버에서는 알 수 없기 때문에 FE에서 보냄, 이런 케이스 구조화가 가능한지)
@@ -177,6 +209,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">TermAgree_NextButton</span>
+    <span class="count-badge">11,517회/7d</span>
   </div>
   <div class="ev-desc">이용약관에서 다음으로 버튼 클릭</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_agreement // boolean // true값으로 되어있는지 = 동의</pre></div>
@@ -185,6 +218,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">SignUp_ReturnToOnboarding</span>
+    <span class="count-badge">142회/7d</span>
   </div>
   
   <div class="prop-block"><div class="prop-label">Properties</div><pre>view_path : 해당 모달 또는 화면이 어느 스크린에서 열렸는지 기록하는 이벤트 프로퍼티
@@ -202,6 +236,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignUp_ReturnToOnboarding_goBackButton</span>
+    <span class="count-badge">98회/7d</span>
   </div>
   <div class="ev-desc">온보딩으로 돌아가시겠습니까 모달 돌아가기 버튼 클릭</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -210,6 +245,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignUp_ReturnToOnboarding_continueButton</span>
+    <span class="count-badge">34회/7d</span>
   </div>
   <div class="ev-desc">온보딩으로 돌아가시겠습니까 모달 계속하기 버튼 클릭</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -218,6 +254,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SignupIntroScreen</span>
+    <span class="count-badge">11,545회/7d</span>
   </div>
   <div class="ev-desc">회원가입 소개 화면 진입</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -226,6 +263,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SignupNicknameScreen</span>
+    <span class="count-badge">11,485회/7d</span>
   </div>
   <div class="ev-desc">회원가입 이름 입력 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -234,6 +272,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SignupAddressScreen</span>
+    <span class="count-badge">11,568회/7d</span>
   </div>
   <div class="ev-desc">회원가입 주소입력 화면</div>
   <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (해당 시점에서 보내야하는 property로 서버에서는 알 수 없기 때문에 FE에서 보냄, 이런 케이스 구조화가 가능한지 확인 필요)
@@ -244,6 +283,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupAddressScreen_addressSearchButton</span>
+    <span class="count-badge">11,662회/7d</span>
   </div>
   <div class="ev-desc">회원가입 주소 검색 버튼 클릭</div>
   
@@ -252,6 +292,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupAddressScreen_completeButton</span>
+    <span class="count-badge">10,988회/7d</span>
   </div>
   
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_filled / boolean / true &amp; false
@@ -261,6 +302,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">SignupAddressScreen_EmptyDetailAddressAlert</span>
+    <span class="count-badge">102회/7d</span>
   </div>
   <div class="ev-desc">상세주소 미입력 알럿 모달</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -269,6 +311,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupAddressScreen_EmptyDetailAddressAlert_save</span>
+    <span class="count-badge">70회/7d</span>
   </div>
   <div class="ev-desc">저장 버튼 클릭</div>
   
@@ -277,6 +320,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupAddressScreen_EmptyDetailAddressAlert_continueEditing</span>
+    <span class="count-badge">31회/7d</span>
   </div>
   <div class="ev-desc">계속 작성 버튼 클릭</div>
   
@@ -285,6 +329,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SignupCompletedScreen</span>
+    <span class="count-badge">10,827회/7d</span>
   </div>
   <div class="ev-desc">회원가입 완료 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -293,6 +338,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupCompletedScreen_startButton</span>
+    <span class="count-badge">1,258회/7d</span>
   </div>
   <div class="ev-desc">회원가입 완료 화면의 “시작하기” 버튼 클릭</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -301,6 +347,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SignupReferralChannelScreen</span>
+    <span class="count-badge">11,125회/7d</span>
   </div>
   <div class="ev-desc">회원가입 유입 경로 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -309,6 +356,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupReferralChannelScreen_exitButton</span>
+    <span class="count-badge">1,542회/7d</span>
   </div>
   <div class="ev-desc">나가기 버튼 클릭</div>
   <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>3 &gt; ?</div><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
@@ -318,6 +366,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SignupReferralChannelScreen_confirmButton</span>
+    <span class="count-badge">9,170회/7d</span>
   </div>
   <div class="ev-desc">선택완료 버튼 클릭</div>
   
@@ -326,6 +375,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthVerifyIntroScreen</span>
+    <span class="count-badge">1,725회/7d</span>
   </div>
   <div class="ev-desc">계정 인증 소개 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -334,6 +384,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthVerifyIntroScreen_verifyAccount</span>
+    <span class="count-badge">1,691회/7d</span>
   </div>
   <div class="ev-desc">계정 인증 버튼 클릭</div>
   
@@ -342,6 +393,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">AuthVerifyIntroScreen_realCreateAccount</span>
+    <span class="count-badge">42회/7d</span>
   </div>
   <div class="ev-desc">새 계정 만들기 마지막 확인 모달 오픈</div>
   
@@ -350,6 +402,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthVerifyAddressScreen</span>
+    <span class="count-badge">1,691회/7d</span>
   </div>
   <div class="ev-desc">계정 인증 주소 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -358,6 +411,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthVerifyAddressScreen_nextButton</span>
+    <span class="count-badge">1,706회/7d</span>
   </div>
   <div class="ev-desc">다음으로 버튼</div>
   
@@ -366,6 +420,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthVerifyNicknameScreen</span>
+    <span class="count-badge">1,706회/7d</span>
   </div>
   <div class="ev-desc">계정 인증 이름 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -374,6 +429,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthVerifyNicknameScreen_completeButton</span>
+    <span class="count-badge">1,687회/7d</span>
   </div>
   <div class="ev-desc">완료 버튼</div>
   
@@ -382,6 +438,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">AuthVerifyFailed</span>
+    <span class="count-badge">30회/7d</span>
   </div>
   <div class="ev-desc">계정 인증 실패</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- failed_count // 실패 횟수 // 1,2,3</pre></div><details class="cmt-wrap"><summary>코멘트 3개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>이미 심어져 있는 것으로 확인 됨</div><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>BE와 FE 둘 다 가능한 작업
@@ -393,6 +450,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthFailedScreen</span>
+    <span class="count-badge">1회/7d</span>
   </div>
   <div class="ev-desc">- 계정 인증 실패 화면</div>
   <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>미결제내역?</div><div class="cmt-item"><span class="cmt-author">인준</span>미결제내역이 있는 경우 회원탈퇴를 못함.
@@ -404,6 +462,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthFailedScreen_createNewAccountButton</span>
+    <span class="count-badge">1회/7d</span>
   </div>
   <div class="ev-desc">- 새계정 만들기</div>
   
@@ -412,6 +471,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthFailedScreen_goOnboardingButton</span>
+    
   </div>
   <div class="ev-desc">- 처음으로 (미결제 내역인 유저의 페이지랑 공통 이벤트)</div>
   
@@ -420,6 +480,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AuthBlockedScreen</span>
+    
   </div>
   <div class="ev-desc">- 로그인을 할 수 없어요 화면</div>
   
@@ -428,6 +489,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthBlockedScreen_createNewAccountButton</span>
+    
   </div>
   <div class="ev-desc">- 새계정 만들기</div>
   
@@ -436,6 +498,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AuthFailedScreen_goOnboardingButton</span>
+    
   </div>
   <div class="ev-desc">- 처음으로 (미결제 내역인 유저의 페이지랑 공통 이벤트)</div>
   
@@ -444,6 +507,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">ContactUsButton_click</span>
+    <span class="count-badge">3,016회/7d</span>
   </div>
   <div class="ev-desc">* 문의하기 버튼이 다 공통으로 사용되고 있음</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -452,6 +516,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">MainTabScreen</span>
+    <span class="count-badge">103,876회/7d</span>
   </div>
   <div class="ev-desc">메인 화면</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>MainTabScreen 만 찍을 수 있음. 자현님과 논의 필요. 기본적으로 tabHome으로 진입됨. is_default_tab property 여부 관련해서도 논의 필요.</div></div></details>
@@ -460,6 +525,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">MainTabScreen_Home</span>
+    <span class="count-badge">135,270회/7d</span>
   </div>
   <div class="ev-desc">홈 탭</div>
   
@@ -468,6 +534,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">MainTabScreen_OrderList</span>
+    <span class="count-badge">50,819회/7d</span>
   </div>
   <div class="ev-desc">이용내역 탭</div>
   
@@ -476,6 +543,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">MainTabScreen_MyPage</span>
+    <span class="count-badge">39,517회/7d</span>
   </div>
   <div class="ev-desc">내 정보 탭</div>
   
@@ -484,6 +552,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">이용 방법</span>
+    
   </div>
   <div class="ev-desc">이용 안내 페이지</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>웹 이벤트 작업 필요 (중요한지 확인 필요)
@@ -493,6 +562,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">이용 방법_tabUsage</span>
+    
   </div>
   <div class="ev-desc">이용방법</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
@@ -502,6 +572,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">이용 방법_tabItem</span>
+    
   </div>
   <div class="ev-desc">수거품목</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
@@ -511,6 +582,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">이용 방법_tabPrice</span>
+    
   </div>
   <div class="ev-desc">이용요금</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)
@@ -520,6 +592,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">의견 보내기</span>
+    <span class="count-badge">1,256회/7d</span>
   </div>
   <div class="ev-desc">의견 보내기페이지 진입</div>
   <details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></details>
@@ -528,6 +601,7 @@ FE (보내야 하는 데이터가 없음, 유저 액션 기반)</div></div></det
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SelectOrderScreen</span>
+    
   </div>
   <div class="ev-desc">배출 품목 선택 화면</div>
   <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>어떤 의도로 selected_bag_count // int // 선택된 봉투 갯수
@@ -539,6 +613,7 @@ bag 용어 관련해서 확정 필요.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SelectOrderScreen_openItemUsageGuide</span>
+    
   </div>
   <div class="ev-desc">배출방법 확인하기 버튼 클릭</div>
   
@@ -547,6 +622,7 @@ bag 용어 관련해서 확정 필요.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AddOrderScreen</span>
+    <span class="count-badge">42,909회/7d</span>
   </div>
   <div class="ev-desc">수거 신청 화면</div>
   <details class="cmt-wrap"><summary>코멘트 2개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">예진</span>FE</div><div class="cmt-item"><span class="cmt-author">인준</span>coupon_id // 선택된 쿠폰 ID
@@ -561,6 +637,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">SelectCoupon</span>
+    <span class="count-badge">38,484회/7d</span>
   </div>
   <div class="ev-desc">쿠폰 리스트 모달</div>
   
@@ -569,6 +646,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AddOrderScreen_applyCoupon [CLICK] ApplyCoupon</span>
+    
   </div>
   <div class="ev-desc">쿠폰 적용하기 버튼 클릭</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- coupon_description // 쿠폰 설명
@@ -579,6 +657,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AddOrderScreen_submitFinal</span>
+    <span class="count-badge">38,165회/7d</span>
   </div>
   <div class="ev-desc">수거신청 최종 제출</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- is_comment // boolean // 요청사항 입력 완료</pre></div><details class="cmt-wrap"><summary>코멘트 1개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">인준</span>해당 건도 FE와 BE에서 보낼 수 있음. FE에서 클릭할 때 마다 값을 보내거나, 수거 신청이 완료되었을 때 서버에서 보내거나</div></div></details>
@@ -587,6 +666,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">AddOrderComplete</span>
+    <span class="count-badge">32,500회/7d</span>
   </div>
   <div class="ev-desc">수거 신청 완료 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- selected_pickupBag_count // int //선택된 봉투 카운트
@@ -608,6 +688,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AddOrderCompleteScreen</span>
+    <span class="count-badge">30,198회/7d</span>
   </div>
   <div class="ev-desc">수거 신청 완료 화면</div>
   
@@ -616,6 +697,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AddOrderCompleteScreen_addPhoto</span>
+    <span class="count-badge">5,581회/7d</span>
   </div>
   <div class="ev-desc">배출 품목 사진찍기</div>
   
@@ -624,6 +706,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AddOrderCompleteScreen_goHome</span>
+    <span class="count-badge">16,189회/7d</span>
   </div>
   <div class="ev-desc">홈으로</div>
   
@@ -632,6 +715,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">AddPayment</span>
+    <span class="count-badge">7,285회/7d</span>
   </div>
   <div class="ev-desc">수거신청에서 결제수단 등록 모달 노출</div>
   
@@ -640,6 +724,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AddPayment_submit</span>
+    <span class="count-badge">6,636회/7d</span>
   </div>
   <div class="ev-desc">등록하기 버튼 클릭</div>
   
@@ -648,6 +733,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AddPayment_cancel</span>
+    <span class="count-badge">578회/7d</span>
   </div>
   <div class="ev-desc">돌아가기 버튼 클릭</div>
   
@@ -656,6 +742,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">CouponScreen</span>
+    <span class="count-badge">9,311회/7d</span>
   </div>
   <div class="ev-desc">쿠폰 화면 진입</div>
   
@@ -664,6 +751,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">CouponScreen_couponCode</span>
+    <span class="count-badge">951회/7d</span>
   </div>
   <div class="ev-desc">쿠폰코드 입력 창 옆 받기 버튼 클릭</div>
   
@@ -672,6 +760,7 @@ view_path는 클라이언트에서 보냄.</div></div></details>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">CouponIssued</span>
+    <span class="count-badge">454,996회/7d</span>
   </div>
   <div class="ev-desc">쿠폰 발급된 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>coupon_policy_id // string // 발급된 쿠폰 ID
@@ -710,6 +799,7 @@ code_type // 쿠폰 코드 타입 - 코드 없음/재사용 가능/재사용 불
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">CouponConsumed</span>
+    <span class="count-badge">25,615회/7d</span>
   </div>
   <div class="ev-desc">쿠폰 사용 완료</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>order_type // enum // 주문 타입 // 수거 or 프로덕트
@@ -743,6 +833,7 @@ code_type // string? enum? // 쿠폰 코드 타입 - 코드 없음/재사용 가
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">CouponApplied</span>
+    
   </div>
   <div class="ev-desc">쿠폰 적용 완료</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>order_type // enum // 주문 타입  // 수거 or 프로덕트
@@ -777,6 +868,7 @@ order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">WithdrawalIntroScreen</span>
+    <span class="count-badge">573회/7d</span>
   </div>
   <div class="ev-desc">탈퇴 화면 진입</div>
   
@@ -785,6 +877,7 @@ order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">WithdrawalIntroScreen_cancel</span>
+    <span class="count-badge">59회/7d</span>
   </div>
   <div class="ev-desc">나가기 버튼 클릭</div>
   
@@ -793,6 +886,7 @@ order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">WithdrawalIntroScreen_next</span>
+    <span class="count-badge">586회/7d</span>
   </div>
   <div class="ev-desc">다음으로 버튼 클릭</div>
   
@@ -801,6 +895,7 @@ order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">WithdrawalReasonScreen</span>
+    <span class="count-badge">463회/7d</span>
   </div>
   <div class="ev-desc">탈퇴 사유 선택 스크린</div>
   
@@ -809,6 +904,7 @@ order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">WithdrawalReasonScreen_cancel</span>
+    <span class="count-badge">30회/7d</span>
   </div>
   <div class="ev-desc">서비스 계속 사용하기 버튼 누르기</div>
   
@@ -817,6 +913,7 @@ order_type // enum //주문 타입 // 봉투구매/수거신청 등 =&gt; 구분
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">WithdrawalReasonScreen_solution</span>
+    <span class="count-badge">60회/7d</span>
   </div>
   <div class="ev-desc">회원탈퇴 솔루션 클릭 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>withdrawal_solution_title // string // 솔루션 명
@@ -826,6 +923,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">WithdrawalComplete</span>
+    <span class="count-badge">357회/7d</span>
   </div>
   <div class="ev-desc">탈퇴 완료 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>withdrawal_reason // enum // 선택된 탈퇴 사유</pre></div>
@@ -834,6 +932,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AppSettingScreen</span>
+    <span class="count-badge">1,064회/7d</span>
   </div>
   <div class="ev-desc">앱 설정 화면</div>
   
@@ -842,6 +941,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AppNotification_agreement</span>
+    <span class="count-badge">5,093회/7d</span>
   </div>
   <div class="ev-desc">앱 알림 동의/비동의 이벤트 발생 여부</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_agreement // boolean // 동의 여부</pre></div><details class="cmt-wrap"><summary>코멘트 3개</summary><div class="cmt-list"><div class="cmt-item"><span class="cmt-author">자현</span>//초반에 앱 동의 관련해서 같은 이벤트로 찍히면 됨
@@ -869,6 +969,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">PaymentScreen</span>
+    <span class="count-badge">3,700회/7d</span>
   </div>
   <div class="ev-desc">결제 수단 목록 화면</div>
   
@@ -877,6 +978,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">PaymentScreen_edit</span>
+    <span class="count-badge">582회/7d</span>
   </div>
   <div class="ev-desc">카드 편집 버튼 클릭</div>
   
@@ -885,6 +987,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">PaymentScreen_delete</span>
+    <span class="count-badge">268회/7d</span>
   </div>
   <div class="ev-desc">카드 삭제 클릭</div>
   
@@ -893,6 +996,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">PaymentDeleteModal_delete</span>
+    <span class="count-badge">261회/7d</span>
   </div>
   <div class="ev-desc">모달 내 - 최종 카드 삭제하기 클릭</div>
   
@@ -901,6 +1005,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">PaymentScreen_addPayment</span>
+    <span class="count-badge">1,208회/7d</span>
   </div>
   <div class="ev-desc">새로운 카드 등록하기 클릭</div>
   
@@ -909,6 +1014,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AddPaymentScreen</span>
+    <span class="count-badge">8,437회/7d</span>
   </div>
   <div class="ev-desc">결제 수단 추가 화면</div>
   
@@ -917,6 +1023,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AddPaymentCompleteScreen</span>
+    <span class="count-badge">5,554회/7d</span>
   </div>
   <div class="ev-desc">결제 수단 추가 완료 화면</div>
   
@@ -925,6 +1032,7 @@ withdrawal_reason // string // 선택된 탈퇴 사유</pre></div><details class
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">AddPaymentResult</span>
+    <span class="count-badge">7,284회/7d</span>
   </div>
   <div class="ev-desc">카드 등록 최종 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success // boolean // 성공 실패 여부
@@ -950,6 +1058,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">서비스 지역</span>
+    <span class="count-badge">6,505회/7d</span>
   </div>
   <div class="ev-desc">서비스 지역 화면</div>
   
@@ -958,6 +1067,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">InviteInfoScreen</span>
+    <span class="count-badge">5,628회/7d</span>
   </div>
   <div class="ev-desc">친구 초대 화면</div>
   
@@ -966,6 +1076,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">InviteInfoScreen_InviteHowTo</span>
+    <span class="count-badge">6,577회/7d</span>
   </div>
   <div class="ev-desc">친구초대 방법 탭</div>
   
@@ -974,6 +1085,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">InviteInfoScreen_EnterInviteCode</span>
+    <span class="count-badge">1,967회/7d</span>
   </div>
   <div class="ev-desc">초대코드 등록 탭</div>
   
@@ -982,6 +1094,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">InviteInfoScreen_EnterInviteCode</span>
+    <span class="count-badge">1,967회/7d</span>
   </div>
   <div class="ev-desc">초대 코드 복사 버튼 클릭</div>
   
@@ -990,6 +1103,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">공지사항</span>
+    <span class="count-badge">634회/7d</span>
   </div>
   
   
@@ -998,6 +1112,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">UserAddressListScreen</span>
+    <span class="count-badge">5,291회/7d</span>
   </div>
   <div class="ev-desc">주소 관리 화면</div>
   
@@ -1006,6 +1121,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">UserAddressListScreen_setDefault</span>
+    <span class="count-badge">1,756회/7d</span>
   </div>
   <div class="ev-desc">바텀다이얼로그 - 기본 주소로 설정</div>
   
@@ -1014,6 +1130,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">UserAddressListScreen_delete</span>
+    <span class="count-badge">603회/7d</span>
   </div>
   <div class="ev-desc">바텀다이얼로그 - 주소 삭제 클릭</div>
   
@@ -1022,6 +1139,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AddAddressScreen</span>
+    <span class="count-badge">1,569회/7d</span>
   </div>
   <div class="ev-desc">주소 추가 화면</div>
   
@@ -1030,6 +1148,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SearchAddressScreen</span>
+    <span class="count-badge">13,195회/7d</span>
   </div>
   <div class="ev-desc">주소 검색 화면</div>
   
@@ -1038,6 +1157,7 @@ pg사 정보 // ex. 나이스페이 (현재는 하나밖에 없음)</div></div><
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">AddAddressResult</span>
+    <span class="count-badge">1,197회/7d</span>
   </div>
   <div class="ev-desc">주소 추가 결과</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 성공유무
@@ -1054,6 +1174,7 @@ accessInfo // enum // 출입방법 선택</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">EditAddressScreen</span>
+    <span class="count-badge">8,591회/7d</span>
   </div>
   <div class="ev-desc">주소 수정 화면</div>
   
@@ -1062,6 +1183,7 @@ accessInfo // enum // 출입방법 선택</pre></div>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">EditAddressResult</span>
+    <span class="count-badge">8,191회/7d</span>
   </div>
   <div class="ev-desc">수정 완료 결과</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 성공유무
@@ -1078,6 +1200,7 @@ accessInfo // enum // 출입방법 선택</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">OrderDetailScreen</span>
+    <span class="count-badge">98,274회/7d</span>
   </div>
   <div class="ev-desc">주문 상세 화면 진입시</div>
   
@@ -1086,6 +1209,7 @@ accessInfo // enum // 출입방법 선택</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">OrderDetailScreen</span>
+    <span class="count-badge">98,274회/7d</span>
   </div>
   <div class="ev-desc">주문 상세 화면</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>order_id // string // 주문 아이디
@@ -1122,6 +1246,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">OrderDetailScreen_snackbar</span>
+    
   </div>
   <div class="ev-desc">주문 상세 화면 내 - 구독 진입 이벤트</div>
   
@@ -1130,6 +1255,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">SelectCoupon</span>
+    <span class="count-badge">38,484회/7d</span>
   </div>
   <div class="ev-desc">쿠폰 적용시 들어가는 모달</div>
   
@@ -1138,6 +1264,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">ApplyCoupon</span>
+    <span class="count-badge">34,596회/7d</span>
   </div>
   <div class="ev-desc">쿠폰 적용 버튼 클릭</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- coupon_policy_id // 선택된 쿠폰 ID
@@ -1150,6 +1277,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">UpdateOrderScreen</span>
+    
   </div>
   <div class="ev-desc">주문 수정 화면</div>
   
@@ -1158,6 +1286,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">UpdateOrderSubmit</span>
+    
   </div>
   <div class="ev-desc">수정 후 변동 사항 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>// 어떤 필드가 바뀌었는 지를 알기 위함
@@ -1181,6 +1310,7 @@ is_coveringBag_count_changed // boolean // 배송해야할 비닐봉투 변경</
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">OrderCancel</span>
+    <span class="count-badge">2,490회/7d</span>
   </div>
   <div class="ev-desc">주문 취소 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>order_id // string // 주문 아이디
@@ -1221,6 +1351,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">ImageViewerScreen</span>
+    <span class="count-badge">24,545회/7d</span>
   </div>
   <div class="ev-desc">이미지 뷰어 화면</div>
   
@@ -1229,6 +1360,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">더 알아보기</span>
+    <span class="count-badge">955회/7d</span>
   </div>
   <div class="ev-desc">더 알아보기 화면</div>
   
@@ -1237,6 +1369,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">PaymentMethodSelect</span>
+    <span class="count-badge">14,970회/7d</span>
   </div>
   <div class="ev-desc">결제수단 선택 모달</div>
   
@@ -1245,6 +1378,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">PaymentMethodSelect_addPayment</span>
+    <span class="count-badge">593회/7d</span>
   </div>
   <div class="ev-desc">바텀 다이얼로그 내 결제수단 추가하기</div>
   
@@ -1253,6 +1387,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">PaymentCompletedScreen</span>
+    <span class="count-badge">10,007회/7d</span>
   </div>
   <div class="ev-desc">직접 결제 완료 랜딩</div>
   
@@ -1261,6 +1396,7 @@ coveringBag_count // int // 배송해야할 비닐봉투 카운트</pre></div>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">OrderPaymentResult</span>
+    <span class="count-badge">30,787회/7d</span>
   </div>
   <div class="ev-desc">수거 주문 직접/ 자동 결제 완료 서버 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 결제 성공 여부
@@ -1314,6 +1450,7 @@ weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">KakaoPaymentScreen</span>
+    <span class="count-badge">3,920회/7d</span>
   </div>
   <div class="ev-desc">카카오페이 결제 화면</div>
   
@@ -1322,6 +1459,7 @@ weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Home_ServiceOpenOfferScreen</span>
+    <span class="count-badge">867회/7d</span>
   </div>
   <div class="ev-desc">서비스 지역 오픈 요청</div>
   
@@ -1330,6 +1468,7 @@ weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Home_ServiceShare</span>
+    <span class="count-badge">373회/7d</span>
   </div>
   <div class="ev-desc">서비스 지역 공유 버튼</div>
   
@@ -1338,6 +1477,7 @@ weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">UserProfileScreen</span>
+    <span class="count-badge">4,564회/7d</span>
   </div>
   <div class="ev-desc">내 정보 설정</div>
   
@@ -1346,6 +1486,7 @@ weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">UpdateNicknameScreen</span>
+    <span class="count-badge">79회/7d</span>
   </div>
   <div class="ev-desc">프로필 이름 변경 화면</div>
   
@@ -1354,6 +1495,7 @@ weight // int // 수거한 무게</pre></div><details class="cmt-wrap"><summary>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">UpdateNicknameResult // 제거</span>
+    
   </div>
   <div class="ev-desc">닉네임 변경하기 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success//boolean// true/false// 변경 성공 여부
@@ -1367,6 +1509,7 @@ error_message// string //실패 원인</pre></div><details class="cmt-wrap"><sum
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">UpdatePhoneScreen</span>
+    <span class="count-badge">53회/7d</span>
   </div>
   <div class="ev-desc">휴대폰 번호 변경  화면 진입</div>
   
@@ -1375,6 +1518,7 @@ error_message// string //실패 원인</pre></div><details class="cmt-wrap"><sum
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">UpdatePhoneSResult</span>
+    
   </div>
   <div class="ev-desc">휴대폰 번호 변경하기</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success//boolean// true/false// 변경 성공 여부
@@ -1385,6 +1529,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">ProductScreen</span>
+    <span class="count-badge">3,481회/7d</span>
   </div>
   <div class="ev-desc">봉투 구매 상세 화면 (only 기존유저)</div>
   
@@ -1393,6 +1538,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">ProductScreen_viewMoreProductInfo</span>
+    <span class="count-badge">884회/7d</span>
   </div>
   <div class="ev-desc">상품정보 더보기 click</div>
   
@@ -1401,6 +1547,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">ProductPurchaseScreen</span>
+    <span class="count-badge">11,424회/7d</span>
   </div>
   <div class="ev-desc">봉투 구매 주문 화면 ( 기존유저 + 신규유저 )</div>
   
@@ -1409,6 +1556,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">ProductPurchaseScreen_editComment</span>
+    <span class="count-badge">5,178회/7d</span>
   </div>
   <div class="ev-desc">배송 요청사항 click</div>
   
@@ -1417,6 +1565,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">ProductPurchaseScreen_editAccessInfo</span>
+    <span class="count-badge">7,545회/7d</span>
   </div>
   <div class="ev-desc">출입방법 입력하기 click</div>
   
@@ -1425,6 +1574,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">ProductPurchaseScreen_loadUserInfo</span>
+    <span class="count-badge">6,611회/7d</span>
   </div>
   <div class="ev-desc">내 정보 불러오기 click</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_active// boolean // 활성화 여부</pre></div>
@@ -1433,6 +1583,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">BagQuantity</span>
+    <span class="count-badge">8,180회/7d</span>
   </div>
   <div class="ev-desc">봉투수량 모달 노출</div>
   
@@ -1441,6 +1592,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">BagQuantity_submit</span>
+    <span class="count-badge">4,704회/7d</span>
   </div>
   <div class="ev-desc">봉투수량 모달 내부에서 수량 선택 버튼 클릭</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>product_quantity // int // 수량 선택</pre></div>
@@ -1449,6 +1601,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">ProductPurchaseCompleteScreen</span>
+    <span class="count-badge">7,365회/7d</span>
   </div>
   <div class="ev-desc">봉투 구매 주문 완료 화면</div>
   
@@ -1457,6 +1610,7 @@ error_message// string //실패 원인</pre></div>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">ProductPurchaseResult</span>
+    <span class="count-badge">7,537회/7d</span>
   </div>
   <div class="ev-desc">물품(=현재는 봉투만) 구매 주문 결과값</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>is_success //boolean // 결제 성공 여부
@@ -1497,6 +1651,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div><details class
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">ProductPurchaseCancel</span>
+    <span class="count-badge">345회/7d</span>
   </div>
   <div class="ev-desc">주문 취소 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>order_id // string // 주문 아이디
@@ -1533,6 +1688,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">ReviewScreen</span>
+    <span class="count-badge">2,537회/7d</span>
   </div>
   <div class="ev-desc">리뷰 화면</div>
   
@@ -1541,6 +1697,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">RequestStoreReviewScreen</span>
+    
   </div>
   <div class="ev-desc">스토어 리뷰 요청 화면</div>
   
@@ -1549,6 +1706,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">RequestStoreReviewScreen_writeReview</span>
+    <span class="count-badge">427회/7d</span>
   </div>
   <div class="ev-desc">리뷰 작성하기 click</div>
   
@@ -1557,6 +1715,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">RequestStoreReviewScreen_skip</span>
+    <span class="count-badge">1,017회/7d</span>
   </div>
   <div class="ev-desc">다음에요 click</div>
   
@@ -1565,6 +1724,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">RequestFeedbackScreen</span>
+    
   </div>
   <div class="ev-desc">피드백 요청 화면</div>
   
@@ -1573,6 +1733,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">RequestFeedbackScreen_writeFeedback</span>
+    <span class="count-badge">4회/7d</span>
   </div>
   <div class="ev-desc">피드백 작성 버튼 클릭</div>
   
@@ -1581,6 +1742,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">RequestFeedbackScreen_skip</span>
+    <span class="count-badge">266회/7d</span>
   </div>
   <div class="ev-desc">다음에요 버튼 클릭</div>
   
@@ -1589,6 +1751,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">null</span>
+    
   </div>
   <div class="ev-desc">null 화면</div>
   
@@ -1597,6 +1760,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">5% 쿠폰 지급</span>
+    <span class="count-badge">975회/7d</span>
   </div>
   <div class="ev-desc">5% 쿠폰 지급 화면</div>
   
@@ -1605,6 +1769,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">8kg 초과 배출</span>
+    <span class="count-badge">2,519회/7d</span>
   </div>
   <div class="ev-desc">8kg 초과 배출 할인 화면</div>
   
@@ -1613,6 +1778,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">기본요금 0원</span>
+    <span class="count-badge">3,627회/7d</span>
   </div>
   <div class="ev-desc">기본요금 0원 화면</div>
   
@@ -1621,6 +1787,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">등급제 쿠폰</span>
+    <span class="count-badge">1,942회/7d</span>
   </div>
   <div class="ev-desc">등급제 쿠폰 화면</div>
   
@@ -1629,6 +1796,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">배송/교환/환불</span>
+    <span class="count-badge">181회/7d</span>
   </div>
   <div class="ev-desc">배송 교환 환불 화면</div>
   
@@ -1637,6 +1805,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">AppUpdateScreen</span>
+    <span class="count-badge">4,533회/7d</span>
   </div>
   <div class="ev-desc">AppUpdate 화면</div>
   
@@ -1645,6 +1814,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">AppUpdateScreen_goToStore</span>
+    
   </div>
   <div class="ev-desc">업데이트하러가기</div>
   
@@ -1653,6 +1823,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">신규 지역 오픈</span>
+    
   </div>
   <div class="ev-desc">신규 지역 오픈 화면</div>
   
@@ -1661,6 +1832,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">연휴 휴무 안내</span>
+    
   </div>
   <div class="ev-desc">연휴 휴무 안내 화면</div>
   
@@ -1669,6 +1841,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">정상 운영 안내</span>
+    
   </div>
   <div class="ev-desc">정상 운영 안내 화면</div>
   
@@ -1677,6 +1850,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#ec4899">VIEW</span>
     <span class="ev-name">Banner</span>
+    <span class="count-badge">322,323회/7d</span>
   </div>
   <div class="ev-desc">배너 노출</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>banner_type //enum// &quot;carousel banner&quot; &quot;popup&quot; &quot;Benefit&quot; &quot;strip&quot; // 배너 유형</pre></div>
@@ -1685,6 +1859,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Banner_click</span>
+    <span class="count-badge">21,950회/7d</span>
   </div>
   <div class="ev-desc">배너 클릭</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- banner_id//string 또는 int // 배너 고유 ID
@@ -1698,6 +1873,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">커버링 오피스 이벤트</span>
+    
   </div>
   <div class="ev-desc">커버링 오피스 이벤트 화면</div>
   
@@ -1706,6 +1882,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">짐싸X커버링</span>
+    <span class="count-badge">620회/7d</span>
   </div>
   <div class="ev-desc">짐싸X커버링 화면</div>
   
@@ -1714,6 +1891,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">소문내고 간식 쿠폰 받기</span>
+    <span class="count-badge">627회/7d</span>
   </div>
   <div class="ev-desc">소문내고 간식 쿠폰 받기 화면</div>
   
@@ -1722,6 +1900,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#3b82f6">ROUTE</span>
     <span class="ev-name">SubscriptionScree</span>
+    
   </div>
   <div class="ev-desc">구독 페이지 진입</div>
   
@@ -1730,6 +1909,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SubscriptionScreen_clickSubscribe</span>
+    <span class="count-badge">829회/7d</span>
   </div>
   <div class="ev-desc">구독 페이지 내 구독하기 버튼 클릭</div>
   
@@ -1738,6 +1918,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">SubscriptionScreen_SubscriptionInfo</span>
+    <span class="count-badge">663회/7d</span>
   </div>
   <div class="ev-desc">구독내역 확인 모달</div>
   
@@ -1746,6 +1927,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SubscriptionInfoModal_SubscribeButton</span>
+    <span class="count-badge">364회/7d</span>
   </div>
   <div class="ev-desc">모달 내 구독하기 버튼</div>
   
@@ -1754,6 +1936,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">SubscriptionInfoModal_ContactCSButton</span>
+    <span class="count-badge">43회/7d</span>
   </div>
   <div class="ev-desc">모달 내 고객센터 문의</div>
   
@@ -1762,6 +1945,7 @@ product_totalQuantity //구매한 제품의 총 수량</pre></div>
     <span class="owner-badge" style="background:#f59e0b">서버</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">SubscriptionComplete</span>
+    <span class="count-badge">331회/7d</span>
   </div>
   <div class="ev-desc">구독 완료 이벤트</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>subscription_id // string //생성된 구독의 고유 ID, 구독 관련 모든 이벤트에서 연결 키로 사용됨
@@ -1782,6 +1966,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">SubscriptionScreen_subscriptionResult</span>
+    <span class="count-badge">364회/7d</span>
   </div>
   <div class="ev-desc">구독 성공 API를 앱에 내려줬을 때</div>
   <div class="prop-block"><div class="prop-label">Properties</div><pre>- is_success // boolean // 성공 여부
@@ -1791,6 +1976,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#f97316">MODAL</span>
     <span class="ev-name">Subscription_AddPayment</span>
+    
   </div>
   <div class="ev-desc">결제수단 등록 모달</div>
   
@@ -1799,6 +1985,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Subscription_AddPaymentMethodModal_Register</span>
+    
   </div>
   <div class="ev-desc">모달 내 결제수단 등록하기 버튼 클릭</div>
   
@@ -1807,6 +1994,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#22c55e">CLICK</span>
     <span class="ev-name">Subscription_AddPaymentMethodModal_Cancel</span>
+    
   </div>
   <div class="ev-desc">모달 내 돌아가기 버튼 클릭</div>
   
@@ -1815,6 +2003,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">믹스패널 자체 이벤트</span>
+    
   </div>
   <div class="ev-desc">ae crashed 화면</div>
   
@@ -1823,6 +2012,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">믹스패널 자체 이벤트</span>
+    
   </div>
   <div class="ev-desc">session start 화면</div>
   
@@ -1831,6 +2021,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">믹스패널 자체 이벤트</span>
+    
   </div>
   <div class="ev-desc">session end 화면</div>
   
@@ -1839,6 +2030,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">믹스패널 자체 이벤트</span>
+    
   </div>
   <div class="ev-desc">ae first open 화면</div>
   
@@ -1847,6 +2039,7 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">믹스패널 자체 이벤트</span>
+    
   </div>
   <div class="ev-desc">ae session 화면</div>
   
@@ -1855,9 +2048,185 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <span class="owner-badge" style="background:#0ea5e9">클라이언트</span>
     <span class="type-badge" style="background:#a855f7">EVENT</span>
     <span class="ev-name">믹스패널 자체 이벤트</span>
+    
   </div>
   <div class="ev-desc">ae updated 화면</div>
   
+</div></section><section id="sec_bq_unreg" class="cat-section" data-cat="bq_unreg"><h2 class="sec-title" style="color:#f59e0b">미등록 이벤트 (BQ only) 25개</h2><div class="card" data-search="[click] authcode_completebutton" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] AuthCode_completeButton</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] coveringbagoffer_accept" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] CoveringBagOffer_accept</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] coveringbagoffer_skip" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] CoveringBagOffer_skip</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] inviteinfoscreen_copyinvitecode" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] InviteInfoScreen_copyInviteCode</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] spothomescreen_carousel" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] SpotHomeScreen_carousel</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] spothomescreen_cta" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] SpotHomeScreen_cta</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] spothomescreen_faqopen" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] SpotHomeScreen_faqOpen</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[click] spothomescreen_pricetab" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[CLICK] SpotHomeScreen_priceTab</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[event] spotbookingcomplete" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[EVENT] SpotBookingComplete</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[event] spotbookingsearchresult" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[EVENT] SpotBookingSearchResult</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[event] spotconversationstart" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[EVENT] SpotConversationStart</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[event] spotquotesent" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[EVENT] SpotQuoteSent</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] coveringbagofferscreen" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] CoveringBagOfferScreen</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] pickupitemselectscreen" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] PickupItemSelectScreen</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] sharebridgelanding" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] ShareBridgeLanding</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] spotbookingmanagescreen" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] SpotBookingManageScreen</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] spotbookingscreen" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] SpotBookingScreen</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] spothomescreen" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] SpotHomeScreen</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] 대형 커버링 봉투 (220l)" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] 대형 커버링 봉투 (220L)</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[route] 이용안내" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[ROUTE] 이용안내</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[view] maintabscreen_subscription" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[VIEW] MainTabScreen_Subscription</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[view] spothomescreen_comparesection" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[VIEW] SpotHomeScreen_compareSection</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[view] spotscrolldepth" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[VIEW] SpotScrollDepth</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[홈화면] session start" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[홈화면] Session start</span>
+    
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
+</div><div class="card" data-search="[휴대폰 인증 화면] session start" data-cat="bq_unreg" data-owner="">
+  <div class="card-top">
+    <span class="type-badge" style="background:#6b7280">BQ ONLY</span>
+    <span class="ev-name">[휴대폰 인증 화면] Session start</span>
+    <span class="count-badge">2회/7d</span>
+  </div>
+  <div class="ev-desc" style="color:#6b7280;font-size:12px">시트에 미등록된 이벤트 — 딕셔너리에 추가 필요 여부 검토</div>
 </div></section></div>
   <div id="funnel-view" class="hidden"><div class="funnel-container"><div class="funnel-step" data-cat="스플래쉬">
   <div class="fstep-header">
@@ -1865,185 +2234,227 @@ next_billing_at // timestamp // 2026-04-12T10:30:00 // 다음 결제일</pre></d
     <div class="fstep-count">1개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
-  <div class="fstep-events"><div class="fev">SplashScreen</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">SplashScreen</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="온보딩">
   <div class="fstep-header">
     <div class="fstep-title">온보딩</div>
     <div class="fstep-count">3개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 2</span></div>
-  <div class="fstep-events"><div class="fev">OnboardingScreen</div><div class="fev">Onboarding_ServiceRegionButton</div><div class="fev">Onboarding_LoginButton</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">OnboardingScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">Onboarding_ServiceRegionButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK">Onboarding_LoginButton</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="로그인___회원가입">
   <div class="fstep-header">
     <div class="fstep-title">로그인 &amp; 회원가입</div>
     <div class="fstep-count">6개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 2</span><span class="fpill" style="background:#22c55e">CLICK 4</span></div>
-  <div class="fstep-events"><div class="fev">AuthPhoneScreen</div><div class="fev">AuthPhone_RequestAuthCodeButton</div><div class="fev">AuthCodeScreen</div><div class="fev">AuthCode_ResendAuthCodeButton</div><div class="fev">AuthCode_NotReceivedCodeButton</div><div class="fev">AuthCode_CompleteButton</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">AuthPhoneScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AuthPhone_RequestAuthCodeButton</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AuthCodeScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AuthCode_ResendAuthCodeButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AuthCode_NotReceivedCodeButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AuthCode_CompleteButton</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="회원가입">
   <div class="fstep-header">
     <div class="fstep-title">회원가입</div>
     <div class="fstep-count">33개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 10</span><span class="fpill" style="background:#22c55e">CLICK 18</span><span class="fpill" style="background:#f97316">MODAL 4</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
-  <div class="fstep-events"><div class="fev">SignUp_TermAgree</div><div class="fev">TermAgree_NextButton</div><div class="fev">SignUp_ReturnToOnboarding</div><div class="fev">SignUp_ReturnToOnboarding_goBackButton</div><div class="fev">SignUp_ReturnToOnboarding_continueButton</div><div class="fev">SignupIntroScreen</div><div class="fev">SignupNicknameScreen</div><div class="fev">SignupAddressScreen</div><div class="fev fev-more">+25개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="MODAL">SignUp_TermAgree</div><div class="fev" data-owner="클라이언트" data-type="CLICK">TermAgree_NextButton</div><div class="fev" data-owner="클라이언트" data-type="MODAL">SignUp_ReturnToOnboarding</div><div class="fev" data-owner="클라이언트" data-type="CLICK">SignUp_ReturnToOnboarding_goBackButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK">SignUp_ReturnToOnboarding_continueButton</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">SignupIntroScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">SignupNicknameScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">SignupAddressScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupAddressScreen_addressSearchButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupAddressScreen_completeButton</div><div class="fev" data-owner="클라이언트" data-type="MODAL" style="display:none">SignupAddressScreen_EmptyDetailAddressAlert</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupAddressScreen_EmptyDetailAddressAlert_save</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupAddressScreen_EmptyDetailAddressAlert_continueEditing</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">SignupCompletedScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupCompletedScreen_startButton</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">SignupReferralChannelScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupReferralChannelScreen_exitButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">SignupReferralChannelScreen_confirmButton</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">AuthVerifyIntroScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthVerifyIntroScreen_verifyAccount</div><div class="fev" data-owner="클라이언트" data-type="MODAL" style="display:none">AuthVerifyIntroScreen_realCreateAccount</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">AuthVerifyAddressScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthVerifyAddressScreen_nextButton</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">AuthVerifyNicknameScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthVerifyNicknameScreen_completeButton</div><div class="fev" data-owner="서버" data-type="EVENT" style="display:none">AuthVerifyFailed</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">AuthFailedScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthFailedScreen_createNewAccountButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthFailedScreen_goOnboardingButton</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">AuthBlockedScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthBlockedScreen_createNewAccountButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AuthFailedScreen_goOnboardingButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">ContactUsButton_click</div><div class="fev fev-more">+25개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="홈">
   <div class="fstep-header">
     <div class="fstep-title">홈</div>
     <div class="fstep-count">9개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 3</span><span class="fpill" style="background:#ec4899">VIEW 3</span></div>
-  <div class="fstep-events"><div class="fev">MainTabScreen</div><div class="fev">MainTabScreen_Home</div><div class="fev">MainTabScreen_OrderList</div><div class="fev">MainTabScreen_MyPage</div><div class="fev">이용 방법</div><div class="fev">이용 방법_tabUsage</div><div class="fev">이용 방법_tabItem</div><div class="fev">이용 방법_tabPrice</div><div class="fev fev-more">+1개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">MainTabScreen</div><div class="fev" data-owner="클라이언트" data-type="VIEW">MainTabScreen_Home</div><div class="fev" data-owner="클라이언트" data-type="VIEW">MainTabScreen_OrderList</div><div class="fev" data-owner="클라이언트" data-type="VIEW">MainTabScreen_MyPage</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">이용 방법</div><div class="fev" data-owner="클라이언트" data-type="CLICK">이용 방법_tabUsage</div><div class="fev" data-owner="클라이언트" data-type="CLICK">이용 방법_tabItem</div><div class="fev" data-owner="클라이언트" data-type="CLICK">이용 방법_tabPrice</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">의견 보내기</div><div class="fev fev-more">+1개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="수거신청">
   <div class="fstep-header">
     <div class="fstep-title">수거신청</div>
     <div class="fstep-count">10개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 5</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
-  <div class="fstep-events"><div class="fev">SelectOrderScreen</div><div class="fev">SelectOrderScreen_openItemUsageGuide</div><div class="fev">AddOrderScreen</div><div class="fev">SelectCoupon</div><div class="fev">AddOrderScreen_applyCoupon [CLICK] ApplyCoupon</div><div class="fev">AddOrderScreen_submitFinal</div><div class="fev">AddOrderComplete</div><div class="fev">AddOrderCompleteScreen</div><div class="fev fev-more">+2개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">SelectOrderScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">SelectOrderScreen_openItemUsageGuide</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AddOrderScreen</div><div class="fev" data-owner="클라이언트" data-type="MODAL">SelectCoupon</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AddOrderScreen_applyCoupon [CLICK] ApplyCoupon</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AddOrderScreen_submitFinal</div><div class="fev" data-owner="서버" data-type="EVENT">AddOrderComplete</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AddOrderCompleteScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AddOrderCompleteScreen_addPhoto</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">AddOrderCompleteScreen_goHome</div><div class="fev fev-more">+2개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="신규유저_결제수단_등록_모달">
   <div class="fstep-header">
     <div class="fstep-title">신규유저 결제수단 등록 모달</div>
     <div class="fstep-count">3개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#22c55e">CLICK 2</span><span class="fpill" style="background:#f97316">MODAL 1</span></div>
-  <div class="fstep-events"><div class="fev">AddPayment</div><div class="fev">AddPayment_submit</div><div class="fev">AddPayment_cancel</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="MODAL">AddPayment</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AddPayment_submit</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AddPayment_cancel</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="쿠폰관리">
   <div class="fstep-header">
     <div class="fstep-title">쿠폰관리</div>
     <div class="fstep-count">5개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 1</span><span class="fpill" style="background:#a855f7">EVENT 3</span></div>
-  <div class="fstep-events"><div class="fev">CouponScreen</div><div class="fev">CouponScreen_couponCode</div><div class="fev">CouponIssued</div><div class="fev">CouponConsumed</div><div class="fev">CouponApplied</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">CouponScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">CouponScreen_couponCode</div><div class="fev" data-owner="서버" data-type="EVENT">CouponIssued</div><div class="fev" data-owner="서버" data-type="EVENT">CouponConsumed</div><div class="fev" data-owner="서버" data-type="EVENT">CouponApplied</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="회원_탈퇴">
   <div class="fstep-header">
     <div class="fstep-title">회원 탈퇴</div>
     <div class="fstep-count">7개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 2</span><span class="fpill" style="background:#22c55e">CLICK 4</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
-  <div class="fstep-events"><div class="fev">WithdrawalIntroScreen</div><div class="fev">WithdrawalIntroScreen_cancel</div><div class="fev">WithdrawalIntroScreen_next</div><div class="fev">WithdrawalReasonScreen</div><div class="fev">WithdrawalReasonScreen_cancel</div><div class="fev">WithdrawalReasonScreen_solution</div><div class="fev">WithdrawalComplete</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">WithdrawalIntroScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">WithdrawalIntroScreen_cancel</div><div class="fev" data-owner="클라이언트" data-type="CLICK">WithdrawalIntroScreen_next</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">WithdrawalReasonScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">WithdrawalReasonScreen_cancel</div><div class="fev" data-owner="클라이언트" data-type="CLICK">WithdrawalReasonScreen_solution</div><div class="fev" data-owner="서버" data-type="EVENT">WithdrawalComplete</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="앱_설정">
   <div class="fstep-header">
     <div class="fstep-title">앱 설정</div>
     <div class="fstep-count">2개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 1</span></div>
-  <div class="fstep-events"><div class="fev">AppSettingScreen</div><div class="fev">AppNotification_agreement</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">AppSettingScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AppNotification_agreement</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="결제수단_등록">
   <div class="fstep-header">
     <div class="fstep-title">결제수단 등록</div>
     <div class="fstep-count">8개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 4</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
-  <div class="fstep-events"><div class="fev">PaymentScreen</div><div class="fev">PaymentScreen_edit</div><div class="fev">PaymentScreen_delete</div><div class="fev">PaymentDeleteModal_delete</div><div class="fev">PaymentScreen_addPayment</div><div class="fev">AddPaymentScreen</div><div class="fev">AddPaymentCompleteScreen</div><div class="fev">AddPaymentResult</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">PaymentScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">PaymentScreen_edit</div><div class="fev" data-owner="클라이언트" data-type="CLICK">PaymentScreen_delete</div><div class="fev" data-owner="클라이언트" data-type="CLICK">PaymentDeleteModal_delete</div><div class="fev" data-owner="클라이언트" data-type="CLICK">PaymentScreen_addPayment</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AddPaymentScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AddPaymentCompleteScreen</div><div class="fev" data-owner="서버" data-type="EVENT">AddPaymentResult</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="서비스지역">
   <div class="fstep-header">
     <div class="fstep-title">서비스지역</div>
     <div class="fstep-count">1개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
-  <div class="fstep-events"><div class="fev">서비스 지역</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">서비스 지역</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="친구_초대">
   <div class="fstep-header">
     <div class="fstep-title">친구 초대</div>
     <div class="fstep-count">4개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#ec4899">VIEW 3</span></div>
-  <div class="fstep-events"><div class="fev">InviteInfoScreen</div><div class="fev">InviteInfoScreen_InviteHowTo</div><div class="fev">InviteInfoScreen_EnterInviteCode</div><div class="fev">InviteInfoScreen_EnterInviteCode</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">InviteInfoScreen</div><div class="fev" data-owner="클라이언트" data-type="VIEW">InviteInfoScreen_InviteHowTo</div><div class="fev" data-owner="클라이언트" data-type="VIEW">InviteInfoScreen_EnterInviteCode</div><div class="fev" data-owner="클라이언트" data-type="VIEW">InviteInfoScreen_EnterInviteCode</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="공지사항">
   <div class="fstep-header">
     <div class="fstep-title">공지사항</div>
     <div class="fstep-count">1개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
-  <div class="fstep-events"><div class="fev">공지사항</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">공지사항</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="주소_관리">
   <div class="fstep-header">
     <div class="fstep-title">주소 관리</div>
     <div class="fstep-count">8개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 4</span><span class="fpill" style="background:#22c55e">CLICK 2</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
-  <div class="fstep-events"><div class="fev">UserAddressListScreen</div><div class="fev">UserAddressListScreen_setDefault</div><div class="fev">UserAddressListScreen_delete</div><div class="fev">AddAddressScreen</div><div class="fev">SearchAddressScreen</div><div class="fev">AddAddressResult</div><div class="fev">EditAddressScreen</div><div class="fev">EditAddressResult</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">UserAddressListScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">UserAddressListScreen_setDefault</div><div class="fev" data-owner="클라이언트" data-type="CLICK">UserAddressListScreen_delete</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AddAddressScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">SearchAddressScreen</div><div class="fev" data-owner="서버" data-type="EVENT">AddAddressResult</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">EditAddressScreen</div><div class="fev" data-owner="서버" data-type="EVENT">EditAddressResult</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="이용_내역">
   <div class="fstep-header">
     <div class="fstep-title">이용 내역</div>
     <div class="fstep-count">10개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 4</span><span class="fpill" style="background:#22c55e">CLICK 2</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 2</span><span class="fpill" style="background:#ec4899">VIEW 1</span></div>
-  <div class="fstep-events"><div class="fev">OrderDetailScreen</div><div class="fev">OrderDetailScreen</div><div class="fev">OrderDetailScreen_snackbar</div><div class="fev">SelectCoupon</div><div class="fev">ApplyCoupon</div><div class="fev">UpdateOrderScreen</div><div class="fev">UpdateOrderSubmit</div><div class="fev">OrderCancel</div><div class="fev fev-more">+2개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">OrderDetailScreen</div><div class="fev" data-owner="클라이언트" data-type="VIEW">OrderDetailScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">OrderDetailScreen_snackbar</div><div class="fev" data-owner="클라이언트" data-type="MODAL">SelectCoupon</div><div class="fev" data-owner="클라이언트" data-type="CLICK">ApplyCoupon</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">UpdateOrderScreen</div><div class="fev" data-owner="서버" data-type="EVENT">UpdateOrderSubmit</div><div class="fev" data-owner="서버" data-type="EVENT">OrderCancel</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">ImageViewerScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">더 알아보기</div><div class="fev fev-more">+2개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="직접_결제_관련">
   <div class="fstep-header">
     <div class="fstep-title">직접 결제 관련</div>
     <div class="fstep-count">5개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 2</span><span class="fpill" style="background:#22c55e">CLICK 1</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 1</span></div>
-  <div class="fstep-events"><div class="fev">PaymentMethodSelect</div><div class="fev">PaymentMethodSelect_addPayment</div><div class="fev">PaymentCompletedScreen</div><div class="fev">OrderPaymentResult</div><div class="fev">KakaoPaymentScreen</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="MODAL">PaymentMethodSelect</div><div class="fev" data-owner="클라이언트" data-type="CLICK">PaymentMethodSelect_addPayment</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">PaymentCompletedScreen</div><div class="fev" data-owner="서버" data-type="EVENT">OrderPaymentResult</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">KakaoPaymentScreen</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="홈__서비스_이용지역_외_">
   <div class="fstep-header">
     <div class="fstep-title">홈 (서비스 이용지역 외)</div>
     <div class="fstep-count">2개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#22c55e">CLICK 2</span></div>
-  <div class="fstep-events"><div class="fev">Home_ServiceOpenOfferScreen</div><div class="fev">Home_ServiceShare</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="CLICK">Home_ServiceOpenOfferScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">Home_ServiceShare</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="내_정보_설정">
   <div class="fstep-header">
     <div class="fstep-title">내 정보 설정</div>
     <div class="fstep-count">5개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
-  <div class="fstep-events"><div class="fev">UserProfileScreen</div><div class="fev">UpdateNicknameScreen</div><div class="fev">UpdateNicknameResult // 제거</div><div class="fev">UpdatePhoneScreen</div><div class="fev">UpdatePhoneSResult</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">UserProfileScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">UpdateNicknameScreen</div><div class="fev" data-owner="서버" data-type="EVENT">UpdateNicknameResult // 제거</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">UpdatePhoneScreen</div><div class="fev" data-owner="서버" data-type="EVENT">UpdatePhoneSResult</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="봉투_구매">
   <div class="fstep-header">
     <div class="fstep-title">봉투 구매</div>
     <div class="fstep-count">11개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 5</span><span class="fpill" style="background:#f97316">MODAL 1</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
-  <div class="fstep-events"><div class="fev">ProductScreen</div><div class="fev">ProductScreen_viewMoreProductInfo</div><div class="fev">ProductPurchaseScreen</div><div class="fev">ProductPurchaseScreen_editComment</div><div class="fev">ProductPurchaseScreen_editAccessInfo</div><div class="fev">ProductPurchaseScreen_loadUserInfo</div><div class="fev">BagQuantity</div><div class="fev">BagQuantity_submit</div><div class="fev fev-more">+3개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">ProductScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">ProductScreen_viewMoreProductInfo</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">ProductPurchaseScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">ProductPurchaseScreen_editComment</div><div class="fev" data-owner="클라이언트" data-type="CLICK">ProductPurchaseScreen_editAccessInfo</div><div class="fev" data-owner="클라이언트" data-type="CLICK">ProductPurchaseScreen_loadUserInfo</div><div class="fev" data-owner="클라이언트" data-type="MODAL">BagQuantity</div><div class="fev" data-owner="클라이언트" data-type="CLICK">BagQuantity_submit</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">ProductPurchaseCompleteScreen</div><div class="fev" data-owner="서버" data-type="EVENT" style="display:none">ProductPurchaseResult</div><div class="fev" data-owner="서버" data-type="EVENT" style="display:none">ProductPurchaseCancel</div><div class="fev fev-more">+3개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="리뷰_화면">
   <div class="fstep-header">
     <div class="fstep-title">리뷰 화면</div>
     <div class="fstep-count">7개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 4</span></div>
-  <div class="fstep-events"><div class="fev">ReviewScreen</div><div class="fev">RequestStoreReviewScreen</div><div class="fev">RequestStoreReviewScreen_writeReview</div><div class="fev">RequestStoreReviewScreen_skip</div><div class="fev">RequestFeedbackScreen</div><div class="fev">RequestFeedbackScreen_writeFeedback</div><div class="fev">RequestFeedbackScreen_skip</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">ReviewScreen</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">RequestStoreReviewScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">RequestStoreReviewScreen_writeReview</div><div class="fev" data-owner="클라이언트" data-type="CLICK">RequestStoreReviewScreen_skip</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">RequestFeedbackScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">RequestFeedbackScreen_writeFeedback</div><div class="fev" data-owner="클라이언트" data-type="CLICK">RequestFeedbackScreen_skip</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="의미없음">
   <div class="fstep-header">
     <div class="fstep-title">의미없음</div>
     <div class="fstep-count">1개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span></div>
-  <div class="fstep-events"><div class="fev">null</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">null</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="이벤트화면">
   <div class="fstep-header">
     <div class="fstep-title">이벤트화면</div>
     <div class="fstep-count">10개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 9</span><span class="fpill" style="background:#22c55e">CLICK 1</span></div>
-  <div class="fstep-events"><div class="fev">5% 쿠폰 지급</div><div class="fev">8kg 초과 배출</div><div class="fev">기본요금 0원</div><div class="fev">등급제 쿠폰</div><div class="fev">배송/교환/환불</div><div class="fev">AppUpdateScreen</div><div class="fev">AppUpdateScreen_goToStore</div><div class="fev">신규 지역 오픈</div><div class="fev fev-more">+2개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">5% 쿠폰 지급</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">8kg 초과 배출</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">기본요금 0원</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">등급제 쿠폰</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">배송/교환/환불</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">AppUpdateScreen</div><div class="fev" data-owner="클라이언트" data-type="CLICK">AppUpdateScreen_goToStore</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">신규 지역 오픈</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">연휴 휴무 안내</div><div class="fev" data-owner="클라이언트" data-type="ROUTE" style="display:none">정상 운영 안내</div><div class="fev fev-more">+2개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="배너">
   <div class="fstep-header">
     <div class="fstep-title">배너</div>
     <div class="fstep-count">5개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 3</span><span class="fpill" style="background:#22c55e">CLICK 1</span><span class="fpill" style="background:#ec4899">VIEW 1</span></div>
-  <div class="fstep-events"><div class="fev">Banner</div><div class="fev">Banner_click</div><div class="fev">커버링 오피스 이벤트</div><div class="fev">짐싸X커버링</div><div class="fev">소문내고 간식 쿠폰 받기</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="VIEW">Banner</div><div class="fev" data-owner="클라이언트" data-type="CLICK">Banner_click</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">커버링 오피스 이벤트</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">짐싸X커버링</div><div class="fev" data-owner="클라이언트" data-type="ROUTE">소문내고 간식 쿠폰 받기</div><div class="fev fev-more"></div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="구독">
   <div class="fstep-header">
     <div class="fstep-title">구독</div>
     <div class="fstep-count">10개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#3b82f6">ROUTE 1</span><span class="fpill" style="background:#22c55e">CLICK 5</span><span class="fpill" style="background:#f97316">MODAL 2</span><span class="fpill" style="background:#a855f7">EVENT 2</span></div>
-  <div class="fstep-events"><div class="fev">SubscriptionScree</div><div class="fev">SubscriptionScreen_clickSubscribe</div><div class="fev">SubscriptionScreen_SubscriptionInfo</div><div class="fev">SubscriptionInfoModal_SubscribeButton</div><div class="fev">SubscriptionInfoModal_ContactCSButton</div><div class="fev">SubscriptionComplete</div><div class="fev">SubscriptionScreen_subscriptionResult</div><div class="fev">Subscription_AddPayment</div><div class="fev fev-more">+2개 더</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="ROUTE">SubscriptionScree</div><div class="fev" data-owner="클라이언트" data-type="CLICK">SubscriptionScreen_clickSubscribe</div><div class="fev" data-owner="클라이언트" data-type="MODAL">SubscriptionScreen_SubscriptionInfo</div><div class="fev" data-owner="클라이언트" data-type="CLICK">SubscriptionInfoModal_SubscribeButton</div><div class="fev" data-owner="클라이언트" data-type="CLICK">SubscriptionInfoModal_ContactCSButton</div><div class="fev" data-owner="서버" data-type="EVENT">SubscriptionComplete</div><div class="fev" data-owner="클라이언트" data-type="EVENT">SubscriptionScreen_subscriptionResult</div><div class="fev" data-owner="클라이언트" data-type="MODAL">Subscription_AddPayment</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">Subscription_AddPaymentMethodModal_Register</div><div class="fev" data-owner="클라이언트" data-type="CLICK" style="display:none">Subscription_AddPaymentMethodModal_Cancel</div><div class="fev fev-more">+2개 더</div></div>
 </div><div class="funnel-arrow">→</div><div class="funnel-step" data-cat="믹스패널_자체_이벤트">
   <div class="fstep-header">
     <div class="fstep-title">믹스패널 자체 이벤트</div>
     <div class="fstep-count">6개</div>
   </div>
   <div class="fstep-types"><span class="fpill" style="background:#a855f7">EVENT 6</span></div>
-  <div class="fstep-events"><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div><div class="fev">믹스패널 자체 이벤트</div></div>
+  <div class="fstep-events"><div class="fev" data-owner="클라이언트" data-type="EVENT">믹스패널 자체 이벤트</div><div class="fev" data-owner="클라이언트" data-type="EVENT">믹스패널 자체 이벤트</div><div class="fev" data-owner="클라이언트" data-type="EVENT">믹스패널 자체 이벤트</div><div class="fev" data-owner="클라이언트" data-type="EVENT">믹스패널 자체 이벤트</div><div class="fev" data-owner="클라이언트" data-type="EVENT">믹스패널 자체 이벤트</div><div class="fev" data-owner="클라이언트" data-type="EVENT">믹스패널 자체 이벤트</div><div class="fev fev-more"></div></div>
 </div></div></div>
 </main>
+</div>
 <script>
+function unlock(){
+  document.getElementById('login-overlay').style.display='none';
+  document.getElementById('app').classList.remove('locked');
+}
+async function checkSession(){
+  const token=sessionStorage.getItem('ed_auth');
+  if(!token){document.getElementById('login-id').focus();return;}
+  try{
+    const r=await fetch('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+    const d=await r.json();
+    if(r.ok&&d.ok){unlock();return;}
+  }catch(e){}
+  sessionStorage.removeItem('ed_auth');
+  document.getElementById('login-id').focus();
+}
+checkSession();
+async function tryLogin(){
+  const id=document.getElementById('login-id').value;
+  const pw=document.getElementById('login-pw').value;
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;
+  document.getElementById('login-error').textContent='';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,password:pw})});
+    const d=await r.json();
+    if(r.ok&&d.ok){
+      sessionStorage.setItem('ed_auth',d.token);
+      unlock();
+    }else{
+      document.getElementById('login-error').textContent=d.error||'ID 또는 비밀번호가 올바르지 않습니다.';
+    }
+  }catch(e){
+    document.getElementById('login-error').textContent='서버 연결 오류가 발생했습니다.';
+  }finally{
+    btn.disabled=false;
+  }
+}
+document.getElementById('login-btn').addEventListener('click',tryLogin);
+document.querySelectorAll('.login-input').forEach(el=>el.addEventListener('keydown',e=>{
+  if(e.key==='Enter')tryLogin();
+}));
 const cards=document.querySelectorAll('.card');
 const sections=document.querySelectorAll('.cat-section');
 const catItems=document.querySelectorAll('.cat-item');
@@ -2080,11 +2491,34 @@ document.getElementById('search').addEventListener('input',()=>show(activeCat));
 
 // Owner filter
 let activeOwner='all';
+const TYPE_COLORS={ROUTE:'#3b82f6',CLICK:'#22c55e',MODAL:'#f97316',EVENT:'#a855f7',VIEW:'#ec4899'};
+function updateFunnel(owner){
+  document.querySelectorAll('.funnel-step').forEach(step=>{
+    const evEls=[...step.querySelectorAll('.fev:not(.fev-more)')];
+    const filtered=owner==='all'?evEls:evEls.filter(el=>el.dataset.owner===owner.toLowerCase());
+    if(filtered.length===0){step.classList.add('hidden');return;}
+    step.classList.remove('hidden');
+    evEls.forEach(el=>{el.style.display='none';});
+    filtered.slice(0,8).forEach(el=>{el.style.display='';});
+    const more=step.querySelector('.fev-more');
+    const moreCount=Math.max(0,filtered.length-8);
+    if(more){more.textContent=moreCount>0?`+${moreCount}개 더`:'';};
+    const countEl=step.querySelector('.fstep-count');
+    if(countEl)countEl.textContent=`${filtered.length}개`;
+    const typesEl=step.querySelector('.fstep-types');
+    if(typesEl){
+      const counts={};
+      filtered.forEach(el=>{const t=el.dataset.type;counts[t]=(counts[t]||0)+1;});
+      typesEl.innerHTML=Object.entries(TYPE_COLORS).filter(([t])=>counts[t]).map(([t,c])=>`<span class="fpill" style="background:${c}">${t} ${counts[t]}</span>`).join('');
+    }
+  });
+}
 document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   activeOwner=b.dataset.owner;
   show(activeCat);
+  updateFunnel(activeOwner);
 }));
 
 // View toggle
