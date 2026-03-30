@@ -24,8 +24,8 @@ def get_bq_counts(project='covering-app-ccd23'):
         from google.cloud import bigquery
         bq_creds_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_BQ', '')
         if bq_creds_path and os.path.exists(bq_creds_path):
-            from google.oauth2.service_account import Credentials
-            creds = Credentials.from_service_account_file(bq_creds_path)
+            import google.auth
+            creds, _ = google.auth.load_credentials_from_file(bq_creds_path)
             client = bigquery.Client(project=project, credentials=creds)
         else:
             client = bigquery.Client(project=project)
