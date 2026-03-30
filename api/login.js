@@ -7,12 +7,26 @@ function generateToken() {
   return `${timestamp}.${hmac}`;
 }
 
-module.exports = function handler(req, res) {
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
 
   let body = req.body;
+  if (!body) {
+    try {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      body = JSON.parse(Buffer.concat(chunks).toString());
+    } catch {
+      body = {};
+    }
+  }
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { body = {}; }
   }
@@ -25,8 +39,13 @@ module.exports = function handler(req, res) {
     return res.status(500).json({ ok: false, error: '서버 설정 오류' });
   }
 
-  const idMatch = crypto.timingSafeEqual(Buffer.from(id || ''), Buffer.from(validId));
-  const pwMatch = crypto.timingSafeEqual(Buffer.from(password || ''), Buffer.from(validPw));
+  const idBuf = Buffer.from(String(id || ''));
+  const pwBuf = Buffer.from(String(password || ''));
+  const validIdBuf = Buffer.from(validId);
+  const validPwBuf = Buffer.from(validPw);
+
+  const idMatch = safeEqual(idBuf, validIdBuf);
+  const pwMatch = safeEqual(pwBuf, validPwBuf);
 
   if (idMatch && pwMatch) {
     const token = generateToken();
