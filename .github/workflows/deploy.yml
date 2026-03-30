@@ -25,15 +25,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Create service account key
+      - name: Create service account keys
         run: |
           echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > /tmp/service-account.json
+          BQ_KEY='${{ secrets.BQ_SERVICE_ACCOUNT_KEY }}'
+          if [ -n "$BQ_KEY" ] && [ "$BQ_KEY" != "null" ]; then
+            echo "$BQ_KEY" > /tmp/bq-service-account.json
+            echo "BQ_SA_PATH=/tmp/bq-service-account.json" >> $GITHUB_ENV
+          fi
 
       - name: Generate HTML
-        run: |
-          python3 generate_event_dict.py
+        run: python3 generate_event_dict.py
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/service-account.json
+          GOOGLE_APPLICATION_CREDENTIALS_BQ: ${{ env.BQ_SA_PATH }}
           OUTPUT_HTML: index.html
 
       - name: Deploy to GitHub Pages
